@@ -6,8 +6,8 @@ env:
   # Upload to AWS uses OIDC for federated auth:
   # https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
   S3_PATH: sensorgnome/images
-  S3_REGION: us-east-2
-  AWS_ROLE: arn:aws:iam::635201719205:role/Github-actions-motus
+  S3_REGION: us-east-1
+  AWS_ROLE: arn:aws:iam::982081078525:role/Github-actions-motus
 
 permissions:
   id-token: write
