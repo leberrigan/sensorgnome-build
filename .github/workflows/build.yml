@@ -7,7 +7,7 @@ env:
   # https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
   S3_PATH: sensorgnome/images
   S3_REGION: us-east-1
-  AWS_ROLE: arn:aws:iam::982081078525:role/Github-actions-motus
+  AWS_ROLE: arn:aws:iam::982081078525:role/GitHub-automations
 
 permissions:
   id-token: write
