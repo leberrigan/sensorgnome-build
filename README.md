@@ -49,6 +49,53 @@ where the maintainer states "pi-gen serves its primary purpose of building the o
 release images well enough", i.e., it's not designed for customizing.
 Pimod's focus is customization.
 
+## Lucas notes
+
+- Repos that are related to SGs all have a workflow `build.yml` that's triggered on 'push' which runs `generate-deb.yml` where it builds a ".deb" package and stores it in an AWS bucket.
+- That means, every time a repo is pushed, a ".deb" package gets automatically generated, but not a new software image.
+- In order to build a new software image, the github automation "promote-packages" needs to be run. 
+- AWS bucket is accessed using aws_roles with OIDC.
+- Tha
+
+
+## Instructions
+
+### Windows
+
+#### Prerequisites
+- Windows Subsystem for Linux (WSL)
+- Docker
+- DEBIAN folder with minimum required files
+
+#### Steps
+
+1. Whenever a 
+
+
+
+
+OLD
+------
+#### Steps
+
+1. Make sure Docker is running.
+1. Open the terminal and enter `wsl` to enter the Windows Subsystem for Linux
+	- Tip: do this from the embedded within Visual Studio Code with your repo loaded to make things faster.
+1. Navigate to parent folder where the repo exists. `cd ..`
+1. Start the container instance
+	```
+	bash dockcross-armv7-rpi-bookworm \
+	--image tvoneicken/sensorgnome-dockcross:armv7-rpi-bookworm-main \
+	bash
+	```
+1. From inside the container, run:
+	```
+	sudo apt-get update
+	sudo apt-get install -y fakeroot debhelper-compat
+	dpkg-buildpackage -b
+	```
+
+
 ## Operation
 
 The image build process is organized as follows:

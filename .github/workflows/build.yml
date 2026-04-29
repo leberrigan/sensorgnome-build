@@ -92,7 +92,7 @@ jobs:
 
       - name: Promote packages from booktest to bookworm
         if: >
-          github.repository == 'tve/sensorgnome-build' &&
+          github.repository == 'leberrigan/sensorgnome-build' &&
           startsWith(github.ref, 'refs/tags/v') &&
           github.event_name == 'push'
         uses: ./.github/actions/promote-packages
@@ -102,7 +102,7 @@ jobs:
       
       - name: Switch codename to bookworm
         if: >
-          github.repository == 'tve/sensorgnome-build' &&
+          github.repository == 'leberrigan/sensorgnome-build' &&
           startsWith(github.ref, 'refs/tags/v') &&
           github.event_name == 'push'
         run: echo CODENAME=bookworm >>$GITHUB_ENV
@@ -137,7 +137,7 @@ jobs:
 
       - name: Upload latest image to AWS S3 repo
         if: >
-          github.repository == 'tve/sensorgnome-build' &&
+          github.repository == 'leberrigan/sensorgnome-build' &&
           startsWith(github.ref, 'refs/tags/v') &&
           github.event_name == 'push'
         run: |

@@ -29,7 +29,7 @@ PI=$MNT/rootfs/home/gnome
 cp ~/.tmux.* $PI || true
 mkdir -p $PI/.ssh
 chmod 700 $PI/.ssh
-cp ~/.ssh/tve-2022.pub $PI/.ssh/authorized_keys
+cp ~/.ssh/lberrigan-2022.pub $PI/.ssh/authorized_keys
 sudo sed -i -e '/^%sudo/s/ALL$/NOPASSWD: ALL/' $MNT/rootfs/etc/sudoers
 
 sync
