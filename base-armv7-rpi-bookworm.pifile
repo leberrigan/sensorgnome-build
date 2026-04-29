@@ -14,8 +14,9 @@ RUN bash -c "curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' |
 RUN bash -c "curl -1sLf -o /etc/apt/sources.list.d/caddy-stable.list 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt'"
 
 # Set-up repository for telegraf (monitoring agent)
-RUN bash -c "curl -1sLf 'https://repos.influxdata.com/influxdata-archive_compat.key' | gpg --dearmor -o /usr/share/keyrings/influxdata.gpg"
-RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/influxdata.gpg] https://repos.influxdata.com/debian stable main' >/etc/apt/sources.list.d/influxdata.list"
+RUN bash -c "curl -fsSL https://repos.influxdata.com/influxdata-archive.key | gpg --dearmor | tee /usr/share/keyrings/influxdata-archive-keyring.gpg >/dev/null"
+RUN bash -c "echo "deb [signed-by=/usr/share/keyrings/influxdata-archive-keyring.gpg] https://repos.influxdata.com/debian stable main" >/etc/apt/sources.list.d/influxdata.list"
+
 
 # Ensure Debian archive keys are installed (critical for Bookworm)
 RUN apt-get update && apt-get install -y debian-archive-keyring
