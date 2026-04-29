@@ -4,6 +4,9 @@ FROM images/$IMAGE_IMG
 TO images/base-$TYPE-temp.img
 PUMP 2G
 
+# Disable initramfs generation early
+RUN echo 'INITRAMFS=no' > /etc/initramfs-tools/conf.d/disable-initramfs
+
 # Set-up nodejs repository so we can get a modern version
 RUN bash -c "curl -1sLf https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg"
 RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main' >/etc/apt/sources.list.d/nodesource.list"
