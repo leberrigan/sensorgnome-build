@@ -66,8 +66,9 @@ RUN apt-get install -y meson cmake bash-completion gnome-common gobject-introspe
 WORKDIR /root
 #RUN bash -c 'curl https://gitlab.freedesktop.org/mobile-broadband/ModemManager/-/archive/1.24.0/ModemManager-1.24.0.tar.gz | tar zxf -'
 #WORKDIR /root/ModemManager-1.24.0
-RUN bash -c 'curl -L https://gitlab.freedesktop.org/mobile-broadband/ModemManager/-/archive/main/ModemManager-main.tar.gz | tar zxf -'
-WORKDIR /root/ModemManager-main
+#RUN bash -c 'curl -L https://gitlab.freedesktop.org/mobile-broadband/ModemManager/-/archive/main/ModemManager-main.tar.gz | tar zxf -'
+RUN git clone --branch main --depth=1 https://gitlab.freedesktop.org/mobile-broadband/ModemManager.git
+WORKDIR /root/ModemManager
 RUN meson setup build --prefix=/usr --buildtype=release --sysconfdir=/etc -Dmbim=false -Dqrtr=false -Dgtk_doc=false -Dbash_completion=false -Dsystemd_suspend_resume=false -Dat_command_via_dbus=true
 RUN ninja -C build install
 WORKDIR /root
