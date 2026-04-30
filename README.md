@@ -55,8 +55,14 @@ Pimod's focus is customization.
 - That means, every time a repo is pushed, a ".deb" package gets automatically generated, but not a new software image.
 - In order to build a new software image, the github automation "promote-packages" needs to be run. 
 - AWS bucket is accessed using aws_roles with OIDC.
-- Tha
+- Every repo has a build file called `gen-packages.sh` which gets run by `generate-deb.yml` if nothing is specified under `inputs.command`.
 
+## Changes made by Lucas
+- Changed AWS paths to Motus AWS
+- I had to remove acl public reads since it's no longer supported.
+- Dropped debian backports when installing dhcp since it's no longer well supported.
+- Dropped `sudo apt-get upgrade -y` since it's causing more harm than good.
+- Switched libqmi version from 1.37.1 to main since ModemManager now requires a minimum version. May be unstable?
 
 ## Instructions
 

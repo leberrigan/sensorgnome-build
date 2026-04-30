@@ -10,11 +10,11 @@ on:
       repo_bucket:
         required: false
         type: string
-        default: sensorgnome
+        default: sensorgnome-982081078525-us-east-1-an
       repo_region:
         required: false
         type: string
-        default: us-east-2
+        default: us-east-1
       repo_codename:
         required: false
         type: string
