@@ -51,7 +51,7 @@ jobs:
           path: .
 
       - name: Install PAM auth dependency
-        if: inputs.dependency != ""
+        if: ${{inputs.dependency}}
         run: sudo apt install -y ${{ inputs.dependency }}
       
       # To export key: gpg --list-secret-keys --keyid-format LONG; gpg --export-secret-keys --armor {your_keyId}
