@@ -4,10 +4,13 @@ FROM images/$IMAGE_IMG
 TO images/base-$TYPE-temp.img
 PUMP 2G
 
-# Disable initramfs generation early
-RUN sh -eu -c \
-  'install -d /etc/initramfs-tools &&
-   printf "INITRAMFS=no\n" > /etc/initramfs-tools/update-initramfs.conf'
+# Completely disable initramfs generation during image build (Bookworm-safe)
+RUN sh -eu -c '
+  if [ -x /usr/sbin/update-initramfs ]; then
+    dpkg-divert --local --rename --add /usr/sbin/update-initramfs
+    ln -s /bin/true /usr/sbin/update-initramfs
+  fi
+'
 
 # Set-up nodejs repository so we can get a modern version
 RUN bash -c "curl -1sLf https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg"
@@ -20,7 +23,7 @@ RUN bash -c "curl -1sLf -o /etc/apt/sources.list.d/caddy-stable.list 'https://dl
 
 # Set-up repository for telegraf (monitoring agent)
 RUN bash -c "curl -fsSL https://repos.influxdata.com/influxdata-archive.key | gpg --dearmor | tee /usr/share/keyrings/influxdata-archive-keyring.gpg >/dev/null"
-RUN bash -c "echo "deb [signed-by=/usr/share/keyrings/influxdata-archive-keyring.gpg] https://repos.influxdata.com/debian stable main" >/etc/apt/sources.list.d/influxdata.list"
+RUN bash -c 'echo "deb [signed-by=/usr/share/keyrings/influxdata-archive-keyring.gpg] https://repos.influxdata.com/debian stable main" >/etc/apt/sources.list.d/influxdata.list'
 
 
 # Ensure Debian archive keys are installed (critical for Bookworm)
