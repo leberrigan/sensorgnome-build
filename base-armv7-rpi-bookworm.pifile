@@ -12,6 +12,15 @@ RUN sh -eu -c '
   fi
 '
 
+RUN sh -eu -c '
+  for f in /usr/sbin/update-initramfs /usr/sbin/mkinitramfs; do
+    if [ -x "$f" ]; then
+      dpkg-divert --local --rename --add "$f"
+      ln -s /bin/true "$f"
+    fi
+  done
+'
+
 # Set-up nodejs repository so we can get a modern version
 RUN bash -c "curl -1sLf https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg"
 RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main' >/etc/apt/sources.list.d/nodesource.list"
@@ -39,7 +48,11 @@ RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.
 
 # Update OS and sources
 RUN apt-get update
-RUN apt-get upgrade -y
+
+RUN apt-get purge -y initramfs-tools initramfs-tools-core
+RUN apt-mark hold initramfs-tools initramfs-tools-core
+
+# RUN apt-get upgrade -y
 
 # Install libqmi from source
 RUN apt-get install -y devscripts meson bash-completion gobject-introspection \
