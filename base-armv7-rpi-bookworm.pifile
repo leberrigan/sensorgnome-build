@@ -35,8 +35,9 @@ RUN bash -c 'echo "deb [signed-by=/usr/share/keyrings/influxdata-archive-keyring
 RUN apt-get update && apt-get install -y debian-archive-keyring
 
 # Set up bookworm backports
-RUN echo "deb http://deb.debian.org/debian/ bookworm-backports main" \
-    >/etc/apt/sources.list.d/bookworm-backports.list
+RUN echo "deb http://raspbian.raspberrypi.org/raspbian bookworm-backports main" \
+  > /etc/apt/sources.list.d/raspbian-backports.list
+
 
 # Set-up repository for tailscale VPN client
 RUN bash -c "curl -1sLf https://pkgs.tailscale.com/stable/raspbian/bookworm.noarmor.gpg >/usr/share/keyrings/tailscale-archive-keyring.gpg"
