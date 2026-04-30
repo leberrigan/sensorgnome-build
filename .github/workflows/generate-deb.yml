@@ -94,5 +94,4 @@ jobs:
           gpg -K
           deb-s3 upload --bucket=${{inputs.repo_bucket}} --s3-region=${{inputs.repo_region}} \
           --preserve-versions --codename=${{inputs.repo_codename}} --sign=${{inputs.gpg_key_id}} \
-          --visibility=public \
           packages/*.deb
