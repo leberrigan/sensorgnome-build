@@ -131,4 +131,4 @@ jobs:
               repo/dists/${CODENAME}/Release
 
           # Upload to S3 (NO ACLs involved)
-          aws s3 sync repo/ "s3://${BUCKET}/" --delete
+          aws s3 sync repo/ "s3://${BUCKET}/" 
