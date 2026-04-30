@@ -62,10 +62,12 @@ jobs:
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
       
       # Upgraded to 0.11.8 dec/13/24, was 0.11.3 previously
-      - name: Install deb-s3
+      - name: Install deb-s3 (ACL-safe)
         run: |
-          curl -sLO https://github.com/deb-s3/deb-s3/releases/download/0.11.8/deb-s3-0.11.8.gem
-          sudo gem install deb-s3-0.11.8.gem
+          sudo gem uninstall -aIx deb-s3 || true
+          sudo gem install deb-s3 --no-document
+          deb-s3 --version
+
 
       - name: Generate .deb packages
         run: ${{ inputs.command }}
@@ -94,5 +96,4 @@ jobs:
           gpg -K
           deb-s3 upload --bucket=${{inputs.repo_bucket}} --s3-region=${{inputs.repo_region}} \
           --preserve-versions --codename=${{inputs.repo_codename}} --sign=${{inputs.gpg_key_id}} \
-          --no-preserve-acls \
           packages/*.deb
