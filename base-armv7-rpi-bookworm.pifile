@@ -5,17 +5,13 @@ TO images/base-$TYPE-temp.img
 PUMP 2G
 
 # Completely disable initramfs generation during image build (Bookworm-safe)
-RUN sh -eu -c '
-  if [ -x /usr/sbin/update-initramfs ]; then
-    dpkg-divert --local --rename --add /usr/sbin/update-initramfs
-    ln -s /bin/true /usr/sbin/update-initramfs
-  fi
-'
-
-RUN sh -eu -c '
+RUN sh -eux -c '
   for f in /usr/sbin/update-initramfs /usr/sbin/mkinitramfs; do
-    if [ -x "$f" ]; then
+    if [ -e "$f" ] && ! dpkg-divert --list "$f" >/dev/null 2>&1; then
       dpkg-divert --local --rename --add "$f"
+    fi
+    if [ -e "$f" ] && [ ! -L "$f" ]; then
+      rm -f "$f"
       ln -s /bin/true "$f"
     fi
   done
