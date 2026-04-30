@@ -58,11 +58,18 @@ Pimod's focus is customization.
 - Every repo has a build file called `gen-packages.sh` which gets run by `generate-deb.yml` if nothing is specified under `inputs.command`.
 
 ## Changes made by Lucas
-- Changed AWS paths to Motus AWS
-- I had to remove acl public reads since it's no longer supported.
-- Dropped debian backports when installing dhcp since it's no longer well supported.
-- Dropped `sudo apt-get upgrade -y` since it's causing more harm than good.
-- Switched libqmi version from 1.37.1 to main since ModemManager now requires a minimum version. May be unstable?
+
+### General
+	- Changed AWS paths to Motus AWS
+	- I had to remove acl public reads since it's no longer supported.
+
+### `build.yml`
+	- Dropped debian backports when installing dhcp since it's no longer well supported.
+	- Dropped `sudo apt-get upgrade -y` since it's causing more harm than good.
+	- Switched libqmi version from 1.37.1 to main since ModemManager now requires a minimum version. May be unstable?
+
+### `generate-deb.yml`
+	- Update deb-s3 to accommodate acl-free buckets
 
 ## Instructions
 
