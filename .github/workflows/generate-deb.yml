@@ -51,7 +51,7 @@ jobs:
           path: .
 
       - name: Install PAM auth dependency
-        if: ${{inputs.dependency}} != ""
+        if: inputs.dependency != ""
         run: sudo apt install -y ${{ inputs.dependency }}
       
       # To export key: gpg --list-secret-keys --keyid-format LONG; gpg --export-secret-keys --armor {your_keyId}
@@ -62,11 +62,11 @@ jobs:
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
       
       # Upgraded to 0.11.8 dec/13/24, was 0.11.3 previously
-      - name: Install deb-s3 (ACL-safe)
-        run: |
-          sudo gem uninstall -aIx deb-s3 || true
-          sudo gem install deb-s3 --no-document
-          deb-s3 --version
+      # - name: Install deb-s3 (ACL-safe)
+      #   run: |
+      #     sudo gem uninstall -aIx deb-s3 || true
+      #     sudo gem install deb-s3 --no-document
+      #     deb-s3 --version
 
 
       - name: Generate .deb packages
@@ -89,12 +89,46 @@ jobs:
           role-session-name: GithubActionsMotus
           aws-region: ${{inputs.repo_region}}
 
-      - name: Insert .debs into repository
-        # GPG_TTY needed to avoid `gpg: signing failed: Inappropriate ioctl for device`
+      # - name: Insert .debs into repository
+      #   # GPG_TTY needed to avoid `gpg: signing failed: Inappropriate ioctl for device`
+      #   run: |
+      #     gpg -k
+      #     gpg -K
+      #     deb-s3 upload --bucket=${{inputs.repo_bucket}} --s3-region=${{inputs.repo_region}} \
+      #     --preserve-versions --codename=${{inputs.repo_codename}} --sign=${{inputs.gpg_key_id}} \
+      #     --no-preserve-acls \
+      #     packages/*.deb
+      - name: Publish APT repo to S3 (modern, ACL-free)
+        shell: bash
         run: |
-          gpg -k
-          gpg -K
-          deb-s3 upload --bucket=${{inputs.repo_bucket}} --s3-region=${{inputs.repo_region}} \
-          --preserve-versions --codename=${{inputs.repo_codename}} --sign=${{inputs.gpg_key_id}} \
-          --no-preserve-acls \
-          packages/*.deb
+          set -euo pipefail
+
+          CODENAME="${{ inputs.repo_codename }}"
+          BUCKET="${{ inputs.repo_bucket }}"
+
+          # Create repo layout
+          mkdir -p repo/pool/${CODENAME}
+          mkdir -p repo/dists/${CODENAME}/main/binary-armhf
+
+          # Copy packages
+          cp packages/*.deb repo/pool/${CODENAME}/
+
+          # Generate Packages metadata
+          apt-ftparchive packages repo/pool/${CODENAME} \
+            > repo/dists/${CODENAME}/main/binary-armhf/Packages
+
+          gzip -kf repo/dists/${CODENAME}/main/binary-armhf/Packages
+
+          # Generate Release file
+          apt-ftparchive release repo/dists/${CODENAME} \
+            > repo/dists/${CODENAME}/Release
+
+          # Sign Release (modern InRelease format)
+          gpg --default-key "${{ inputs.gpg_key_id }}" \
+              --batch --yes \
+              --clearsign \
+              -o repo/dists/${CODENAME}/InRelease \
+              repo/dists/${CODENAME}/Release
+
+          # Upload to S3 (NO ACLs involved)
+          aws s3 sync repo/ "s3://${BUCKET}/" --delete
