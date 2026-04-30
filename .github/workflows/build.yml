@@ -133,7 +133,7 @@ jobs:
 
       - name: Upload image to AWS S3 repo
         run: |
-          aws s3 cp --acl public-read --no-progress images/$SG_ZIP s3://$S3_PATH$GIT_REF/$SG_ZIP 
+          aws s3 cp --no-progress images/$SG_ZIP s3://$S3_PATH$GIT_REF/$SG_ZIP 
 
       - name: Upload latest image to AWS S3 repo
         if: >
@@ -142,7 +142,7 @@ jobs:
           github.event_name == 'push'
         run: |
           IMG=${SG_ZIP/rpi-2.*/rpi-2.latest.zip}
-          aws s3 cp --acl public-read --no-progress images/$SG_ZIP s3://$S3_PATH$GIT_REF/$IMG 
+          aws s3 cp --no-progress images/$SG_ZIP s3://$S3_PATH$GIT_REF/$IMG 
 
       - name: Create annotation with link to images on S3
         run: |
