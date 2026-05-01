@@ -96,7 +96,6 @@ jobs:
           gpg -K
           deb-s3 upload --bucket=${{inputs.repo_bucket}} --s3-region=${{inputs.repo_region}} \
           --preserve-versions --codename=${{inputs.repo_codename}} --sign=${{inputs.gpg_key_id}} \
-          --no-preserve-acls \
           packages/*.deb
       # - name: Publish APT repo to S3 (modern, ACL-free)
       #   shell: bash
