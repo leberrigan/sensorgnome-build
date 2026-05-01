@@ -23,9 +23,9 @@ RUN rm /usr/share/userconf-pi/sshd_banner
 RUN bash -c '(echo; echo export SYSTEMD_LESS=XRF) >> /home/$NU/.bashrc'
 
 # Configure sensorgnome repository
-RUN bash -c "curl -1sLf -o /usr/share/keyrings/sensorgnome.gpg 'https://sensorgnome.s3.amazonaws.com/sensorgnome.gpg'"
+RUN bash -c "curl -1sLf -o /usr/share/keyrings/sensorgnome.gpg 'https://sensorgnome-982081078525-us-east-1-an.s3.amazonaws.com/sensorgnome.gpg'"
 RUN gpg --no-default-keyring --keyring /usr/share/keyrings/sensorgnome.gpg --list-keys
-RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/sensorgnome.gpg] https://sensorgnome.s3.amazonaws.com/' $CODENAME main >/etc/apt/sources.list.d/sensorgnome.list"
+RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/sensorgnome.gpg] https://sensorgnome-982081078525-us-east-1-an.s3.amazonaws.com/' $CODENAME main >/etc/apt/sources.list.d/sensorgnome.list"
 RUN apt update
 
 # Install sensorgnome packages (the has-double line can be deleted when no pre 2023-080 SG exists)

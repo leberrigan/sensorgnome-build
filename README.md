@@ -49,6 +49,9 @@ where the maintainer states "pi-gen serves its primary purpose of building the o
 release images well enough", i.e., it's not designed for customizing.
 Pimod's focus is customization.
 
+---
+
+
 ## Lucas notes
 
 - Repos that are related to SGs all have a workflow `build.yml` that's triggered on 'push' which runs `generate-deb.yml` where it builds a ".deb" package and stores it in an AWS bucket.
@@ -56,6 +59,7 @@ Pimod's focus is customization.
 - In order to build a new software image, the github automation "promote-packages" needs to be run. 
 - AWS bucket is accessed using aws_roles with OIDC.
 - Every repo has a build file called `gen-packages.sh` which gets run by `generate-deb.yml` if nothing is specified under `inputs.command`.
+- It feels like I had to make a lot of changes to the build files to get it to work. I'm not sure if this is because the process is somewhat fragile due to dependencies and standards constantly changing, or if it's because of my incompetence. However, it appears to be mostly related to switching over to a different AWS bucket that doesn't have ACL supported, which is reassuring.
 
 ## Changes made by Lucas
 
@@ -71,26 +75,13 @@ Pimod's focus is customization.
 ### `generate-deb.yml`
 	- Update deb-s3 to accommodate acl-free buckets
 
-## Instructions
-
-### Windows
-
-#### Prerequisites
-- Windows Subsystem for Linux (WSL)
-- Docker
-- DEBIAN folder with minimum required files
-
-#### Steps
-
-1. Whenever a 
 
 
 
-
-OLD
+Part 1: (Re-)Build Docker Hub Image
 ------
+Probably unecessary. Just use what's already available in dockerhub.
 #### Steps
-
 1. Make sure Docker is running.
 1. Open the terminal and enter `wsl` to enter the Windows Subsystem for Linux
 	- Tip: do this from the embedded within Visual Studio Code with your repo loaded to make things faster.
@@ -108,6 +99,36 @@ OLD
 	dpkg-buildpackage -b
 	```
 
+---
+
+
+
+Part 2: Create *.deb Packages
+-----
+Automated
+#### Steps
+1. Create a GPG key:
+	a. `gpg --full-generate-key`
+  	b. `gpg --export --armor <KEYID> > sensorgnome.gpg`
+	c. Upload it to the AWS bucket.
+1. Every repo  that will be part of the final build needs to have GPG_PASSPHRASE and GPG_PRIVATE_KEY set in the repo secrets (or organisation secrets).
+1. Every repo also needs to have a GitHub Workflow `build.yml` file in it.
+1. Whenever a commit gets pushed to a repo, the workflow triggers and builds a .deb package and places it in an AWS folder ([BUCKET]/pool/[booktest|bookworm])
+
+
+---
+
+
+Part 3: Build a new SG image
+-----
+#### Steps
+1. Whenever a 
+
+
+
+
+Continue TvE notes
+----
 
 ## Operation
 
