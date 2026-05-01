@@ -127,6 +127,34 @@ Part 3: Build a new SG image
 
 
 
+
+
+AWS Tree
+-----
+- dists/booktest/
+  - InRelease
+  - main/binary-armhf/
+    - Packages
+    - Packages.gz
+  - Release
+- pool/booktest/
+  - enpi_2026.120_armhf.deb
+  - sensorgnome_2026.120_armhf.deb
+  - sg-boot_2026.120_armhf.deb
+  - sg-burstfinder_2026.120_armhf.deb
+  - sg-cellular_2026.120_armhf.deb
+  - sg-control_2026.120_armhf.deb
+  - sg-gps-clock_2026.120_armhf.deb
+  - sg-hub-agent_2026.120_armhf.deb
+  - sg-sixfab_2026.120_armhf.deb
+  - sg-udev-usb_2026.120_armhf.deb
+  - sg-upgrader_2026.120_armhf.deb
+  - sg-web-portal_2026.120_armhf.deb
+  - sg-wifi-button_2026.120_armhf.deb
+  - ss1-display_2026.120_armhf.deb
+  - vamp-alsa-host_2026.121_armhf.deb
+  - vamp-plugins_2026.121_armhf.deb
+
 Continue TvE notes
 ----
 
@@ -229,3 +257,5 @@ gpg --export 11162C1D8661F9148480CDD98EFF151A5DDAE8F1 >sensorgnome-pub-2024.gpg
 - If the console switches to NUL after the initial boot: that's gpsd trying to talk to a
   gps @9600 baud; this can be disabled in /opt/sensorgnome/gps-clock/init-adafruit-gps.sh
   
+
+
