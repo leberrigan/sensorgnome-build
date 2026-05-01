@@ -105,7 +105,11 @@ jobs:
           github.repository == 'leberrigan/sensorgnome-build' &&
           startsWith(github.ref, 'refs/tags/v') &&
           github.event_name == 'push'
-        run: echo CODENAME=bookworm >>$GITHUB_ENV
+        run: echo CODENAME=bookworm >>$GITHUB_ENV        
+      - name: Install apt-ftparchive
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apt-utils
       - name: Rebuild APT repo metadata
         run: |
           set -euo pipefail
@@ -140,7 +144,6 @@ jobs:
 
           aws s3 sync repo/dists/ \
             "s3://sensorgnome-982081078525-us-east-1-an/dists/"
-
       - name: Fetch existing base image from S3
         run: |
           mkdir -p images
