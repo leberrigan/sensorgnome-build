@@ -92,11 +92,12 @@ jobs:
       - name: Insert .debs into repository
         # GPG_TTY needed to avoid `gpg: signing failed: Inappropriate ioctl for device`
         run: |
-          gpg -k
-          gpg -K
-          deb-s3 upload --bucket=${{inputs.repo_bucket}} --s3-region=${{inputs.repo_region}} \
-          --preserve-versions --codename=${{inputs.repo_codename}} --sign=${{inputs.gpg_key_id}} \
-          packages/*.deb
+          aws s3 cp packages/*.deb "s3://${{ inputs.repo_bucket }}/pool/${{ inputs.repo_codename }}/"
+        # gpg -k
+        # gpg -K
+        # deb-s3 upload --bucket=${{inputs.repo_bucket}} --s3-region=${{inputs.repo_region}} \
+        # --preserve-versions --codename=${{inputs.repo_codename}} --sign=${{inputs.gpg_key_id}} \
+        # packages/*.deb
       # - name: Publish APT repo to S3 (modern, ACL-free)
       #   shell: bash
       #   run: |
