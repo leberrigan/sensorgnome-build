@@ -120,36 +120,43 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "Rebuilding APT repo for $CODENAME"
+          BUCKET="sensorgnome-982081078525-us-east-1-an"
+          CODENAME="booktest"
 
-          rm -rf repo
-          mkdir -p repo/pool/$CODENAME repo/dists/$CODENAME/main/binary-armhf
+          rm -rf work
+          mkdir -p work/pool/$CODENAME work/dists/$CODENAME/main/binary-armhf
 
+          # Fetch packages into pool/ (no repo/ prefix)
           aws s3 sync \
-            "s3://sensorgnome-982081078525-us-east-1-an/pool/$CODENAME/" \
-            "repo/pool/$CODENAME/"
+            "s3://${BUCKET}/pool/${CODENAME}/" \
+            "work/pool/${CODENAME}/"
 
-          apt-ftparchive packages repo/pool/$CODENAME \
-            > repo/dists/$CODENAME/main/binary-armhf/Packages
+          cd work
 
-          gzip -kf repo/dists/$CODENAME/main/binary-armhf/Packages
+          # Generate Packages with correct paths
+          apt-ftparchive packages pool/$CODENAME \
+            > dists/$CODENAME/main/binary-armhf/Packages
 
+          gzip -kf dists/$CODENAME/main/binary-armhf/Packages
+
+          # Generate Release
           apt-ftparchive \
             -o APT::FTPArchive::Release::Codename="$CODENAME" \
             -o APT::FTPArchive::Release::Suite="$CODENAME" \
             -o APT::FTPArchive::Release::Architectures="armhf" \
             -o APT::FTPArchive::Release::Components="main" \
-            release repo/dists/$CODENAME \
-            > repo/dists/$CODENAME/Release
+            release dists/$CODENAME \
+            > dists/$CODENAME/Release
 
+          # Sign InRelease
           gpg --default-key 1DC0C66E4594570A \
             --batch --yes \
             --clearsign \
-            -o repo/dists/$CODENAME/InRelease \
-            repo/dists/$CODENAME/Release
+            -o dists/$CODENAME/InRelease \
+            dists/$CODENAME/Release
 
-          aws s3 sync repo/dists/ \
-            "s3://sensorgnome-982081078525-us-east-1-an/dists/"
+          # Publish metadata only
+          aws s3 sync dists/ "s3://${BUCKET}/dists/"
       - name: Fetch existing base image from S3
         run: |
           mkdir -p images
