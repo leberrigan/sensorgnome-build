@@ -107,39 +107,39 @@ jobs:
           github.event_name == 'push'
         run: echo CODENAME=bookworm >>$GITHUB_ENV
       - name: Rebuild APT repo metadata
-                run: |
-                  set -euo pipefail
+        run: |
+          set -euo pipefail
 
-                  echo "Rebuilding APT repo for $CODENAME"
+          echo "Rebuilding APT repo for $CODENAME"
 
-                  rm -rf repo
-                  mkdir -p repo/pool/$CODENAME repo/dists/$CODENAME/main/binary-armhf
+          rm -rf repo
+          mkdir -p repo/pool/$CODENAME repo/dists/$CODENAME/main/binary-armhf
 
-                  aws s3 sync \
-                    "s3://sensorgnome-982081078525-us-east-1-an/pool/$CODENAME/" \
-                    "repo/pool/$CODENAME/"
+          aws s3 sync \
+            "s3://sensorgnome-982081078525-us-east-1-an/pool/$CODENAME/" \
+            "repo/pool/$CODENAME/"
 
-                  apt-ftparchive packages repo/pool/$CODENAME \
-                    > repo/dists/$CODENAME/main/binary-armhf/Packages
+          apt-ftparchive packages repo/pool/$CODENAME \
+            > repo/dists/$CODENAME/main/binary-armhf/Packages
 
-                  gzip -kf repo/dists/$CODENAME/main/binary-armhf/Packages
+          gzip -kf repo/dists/$CODENAME/main/binary-armhf/Packages
 
-                  apt-ftparchive \
-                    -o APT::FTPArchive::Release::Codename="$CODENAME" \
-                    -o APT::FTPArchive::Release::Suite="$CODENAME" \
-                    -o APT::FTPArchive::Release::Architectures="armhf" \
-                    -o APT::FTPArchive::Release::Components="main" \
-                    release repo/dists/$CODENAME \
-                    > repo/dists/$CODENAME/Release
+          apt-ftparchive \
+            -o APT::FTPArchive::Release::Codename="$CODENAME" \
+            -o APT::FTPArchive::Release::Suite="$CODENAME" \
+            -o APT::FTPArchive::Release::Architectures="armhf" \
+            -o APT::FTPArchive::Release::Components="main" \
+            release repo/dists/$CODENAME \
+            > repo/dists/$CODENAME/Release
 
-                  gpg --default-key 1DC0C66E4594570A \
-                    --batch --yes \
-                    --clearsign \
-                    -o repo/dists/$CODENAME/InRelease \
-                    repo/dists/$CODENAME/Release
+          gpg --default-key 1DC0C66E4594570A \
+            --batch --yes \
+            --clearsign \
+            -o repo/dists/$CODENAME/InRelease \
+            repo/dists/$CODENAME/Release
 
-                  aws s3 sync repo/dists/ \
-                    "s3://sensorgnome-982081078525-us-east-1-an/dists/"
+          aws s3 sync repo/dists/ \
+            "s3://sensorgnome-982081078525-us-east-1-an/dists/"
 
       - name: Fetch existing base image from S3
         run: |
