@@ -92,7 +92,7 @@ jobs:
       - name: Insert .debs into repository
         # GPG_TTY needed to avoid `gpg: signing failed: Inappropriate ioctl for device`
         run: |
-          aws s3 cp packages/*.deb "s3://${{ inputs.repo_bucket }}/pool/${{ inputs.repo_codename }}/"
+          aws s3 cp packages/ "s3://${{ inputs.repo_bucket }}/pool/${{ inputs.repo_codename }}/"
         # gpg -k
         # gpg -K
         # deb-s3 upload --bucket=${{inputs.repo_bucket}} --s3-region=${{inputs.repo_region}} \
