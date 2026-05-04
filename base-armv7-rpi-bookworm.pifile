@@ -17,8 +17,7 @@ RUN bash -c "curl -1sLf -o /etc/apt/sources.list.d/caddy-stable.list 'https://dl
 RUN bash -c "curl -fsSL https://repos.influxdata.com/influxdata-archive.key | gpg --dearmor | tee /usr/share/keyrings/influxdata-archive-keyring.gpg >/dev/null"
 RUN bash -c 'echo "deb [signed-by=/usr/share/keyrings/influxdata-archive-keyring.gpg] https://repos.influxdata.com/debian stable main" >/etc/apt/sources.list.d/influxdata.list'
 
-
-# Ensure Debian archive keys are installed (critical for Bookworm)
+# Ensure Debian archive keys are installed
 RUN apt-get update && apt-get install -y debian-archive-keyring
 
 # Set-up repository for tailscale VPN client
@@ -27,7 +26,9 @@ RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.
 
 # Update OS and sources
 RUN apt-get update
-RUN apt-get upgrade -y
+RUN apt-get install -y initramfs-tools initramfs-tools-core
+RUN apt-get install -y raspberrypi-kernel raspberrypi-bootloader
+
 
 # Install libqmi from source
 RUN apt-get install -y devscripts meson bash-completion gobject-introspection \
