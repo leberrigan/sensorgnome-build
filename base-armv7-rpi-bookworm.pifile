@@ -1,8 +1,15 @@
 # Create ARMv7 bookworm image for RaspberryPi Sensorgnome
 
+# Get image: see manifest file for details
 FROM images/$IMAGE_IMG
 TO images/base-$TYPE-temp.img
+
+# Increase image by 2 GB
 PUMP 2G
+
+# Force non-interactive apt & dpkg configuration
+ENV DEBIAN_FRONTEND=noninteractive
+RUN printf 'Dpkg::Options { "--force-confdef"; "--force-confold"; };\n' > /etc/apt/apt.conf.d/99force-conffiles
 
 # Set-up nodejs repository so we can get a modern version
 RUN bash -c "curl -1sLf https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg"
