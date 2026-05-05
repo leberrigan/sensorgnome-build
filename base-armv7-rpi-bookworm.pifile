@@ -9,7 +9,7 @@ PUMP 2G
 
 # Force non-interactive dpkg conffile handling
 ENV DEBIAN_FRONTEND=noninteractive
-RUN printf 'Dpkg::Options:: "--force-confdef";\nDpkg::Options:: "--force-confold";\n' > /etc/apt/apt.conf.d/99force-conffiles
+RUN printf 'Dpkg::Options::= "--force-confdef";\nDpkg::Options::= "--force-confold";\n' > /etc/apt/apt.conf.d/99force-conffiles
 
 # Set-up nodejs repository so we can get a modern version
 RUN bash -c "curl -1sLf https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg"
