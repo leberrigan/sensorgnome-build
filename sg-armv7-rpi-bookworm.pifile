@@ -82,6 +82,7 @@ RUN bash -c 'echo RNGDOPTIONS="--stats-interval=86400" >>/etc/default/rng-tools-
 RUN sed -i 's| init=\S*||' /boot/firmware/cmdline.txt
 RUN sed -i 's| sdhci\.debug_quirks2=4||' /boot/firmware/cmdline.txt
 RUN sed -i "s/ quiet//g" /boot/firmware/cmdline.txt
+RUN sed -i 's/^auto_initramfs=1/auto_initramfs=0/' /boot/firmware/config.txt
 RUN rm /etc/rc3.d/S01resize2fs_once
 
 # Change the avahi/bonjour/mDNS hostname to sgpi.local and enable advertising
