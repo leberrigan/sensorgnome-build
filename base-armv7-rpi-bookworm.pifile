@@ -30,6 +30,9 @@ RUN apt-get update && apt-get install -y debian-archive-keyring
 RUN bash -c "curl -1sLf https://pkgs.tailscale.com/stable/raspbian/bookworm.noarmor.gpg >/usr/share/keyrings/tailscale-archive-keyring.gpg"
 RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/raspbian bookworm main' >/etc/apt/sources.list.d/tailscale.list"
 
+# Set up Debian bookworm backports (needed for dhcpcd version that works with wpa_supplicant)
+RUN bash -c "echo 'deb http://deb.debian.org/debian/ bookworm-backports main' >/etc/apt/sources.list.d/bookworm-backports.list"
+
 # Update OS and sources
 RUN apt-get update
 
@@ -62,8 +65,8 @@ RUN ninja -C build install
 WORKDIR /root
 RUN rm -rf libqmi ModemManager*
 
-# Install
-RUN apt-get install -y dhcpcd
+# Install dhcpcd from backports - the bookworm version doesn't work correctly with wpa_supplicant
+RUN apt-get install -y dhcpcd -t bookworm-backports
 
 # Install some apps, they should be pulled in via dependencies but doing it here causes the
 # installation time to be absorbed into the base build.
