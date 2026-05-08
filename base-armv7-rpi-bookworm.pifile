@@ -31,7 +31,7 @@ RUN bash -c "curl -1sLf https://pkgs.tailscale.com/stable/raspbian/bookworm.noar
 RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/raspbian bookworm main' >/etc/apt/sources.list.d/tailscale.list"
 
 # Set up Debian bookworm backports (needed for dhcpcd version that works with wpa_supplicant)
-RUN bash -c "echo 'deb http://deb.debian.org/debian/ bookworm-backports main' >/etc/apt/sources.list.d/bookworm-backports.list"
+RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian/ bookworm-backports main' >/etc/apt/sources.list.d/bookworm-backports.list"
 
 # Update OS and sources
 RUN apt-get update
