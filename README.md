@@ -112,6 +112,7 @@ Automated
   	b. `gpg --export --armor <KEYID> > sensorgnome.gpg`
 	c. Upload it to the AWS bucket.
 1. Every repo  that will be part of the final build needs to have GPG_PASSPHRASE and GPG_PRIVATE_KEY set in the repo secrets (or organisation secrets).
+  a. To decrypt, run in wsl or linux: `gpg -d [gpg file]` and enter the password when prompted
 1. Every repo also needs to have a GitHub Workflow `build.yml` file in it.
 1. Whenever a commit gets pushed to a repo, the workflow triggers and builds a .deb package and places it in an AWS folder ([BUCKET]/pool/[booktest|bookworm])
 
@@ -259,3 +260,16 @@ gpg --export 11162C1D8661F9148480CDD98EFF151A5DDAE8F1 >sensorgnome-pub-2024.gpg
   
 
 
+## Boot SG in root
+
+cmdline.txt
+```
+console=serial0,115200 console=tty1 root=PARTUUID=bc471543-02 rootfstype=ext4 fsck.repair=yes rootwait rw init=/bin/bash
+
+```
+
+On boot, run:
+
+```
+cat /var/log/syslog | grep -E 'sg-wifi|sg-web|hostapd|dhcp|wpa|error|fail' | tail -60
+```

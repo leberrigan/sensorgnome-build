@@ -88,5 +88,9 @@ RUN rm /etc/rc3.d/S01resize2fs_once
 # Change the avahi/bonjour/mDNS hostname to sgpi.local and enable advertising
 RUN bash -c 'sed -ir -e "/host-name/s/.*/host-name=sgpi/" -e "/publish-workstation/s/no/yes/" /etc/avahi/avahi-daemon.conf'
 
+# Pre-generate self-signed TLS cert so caddy can start on first boot before sg-web-portal runs.
+# init-config.sh will regenerate a fresh cert on first boot anyway.
+RUN bash -c 'openssl req -x509 -newkey rsa:2048 -days 3650 -noenc -keyout /etc/sensorgnome/self-signed.key -out /etc/sensorgnome/self-signed.pem -subj "/CN=sgpi.local" -addext "subjectAltName=DNS:sgpi.local,DNS:*.sgpi.local"'
+
 # Timestamp the Sensorgnome image so we can detect and unset clock
 RUN bash -c 'date +%s >/etc/sensorgnome/image-stamp'
