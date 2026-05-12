@@ -90,7 +90,7 @@ RUN bash -c 'sed -ir -e "/host-name/s/.*/host-name=sgpi/" -e "/publish-workstati
 
 # Pre-generate self-signed TLS cert so caddy can start on first boot before sg-web-portal runs.
 # init-config.sh will regenerate a fresh cert on first boot anyway.
-RUN bash -c 'openssl req -x509 -newkey rsa:2048 -days 3650 -noenc -keyout /etc/sensorgnome/self-signed.key -out /etc/sensorgnome/self-signed.pem -subj "/CN=sgpi.local" -addext "subjectAltName=DNS:sgpi.local,DNS:*.sgpi.local"'
+RUN bash -c 'openssl req -x509 -newkey rsa:2048 -days 3650 -noenc -keyout /etc/sensorgnome/self-signed.key -out /etc/sensorgnome/self-signed.pem -subj "/CN=sgpi.local" -addext "subjectAltName=DNS:sgpi.local,DNS:*.sgpi.local" && chmod 644 /etc/sensorgnome/self-signed.*'
 
 # Timestamp the Sensorgnome image so we can detect and unset clock
 RUN bash -c 'date +%s >/etc/sensorgnome/image-stamp'
