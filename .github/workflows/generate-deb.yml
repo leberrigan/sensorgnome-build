@@ -36,6 +36,10 @@ on:
         required: true
       GPG_PASSPHRASE:
         required: true
+      CLAIM_CERT:
+        required: false
+      CLAIM_PRIVATE_KEY:
+        required: false
 
 permissions:
   id-token: write
@@ -61,13 +65,14 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
       
-      # Upgraded to 0.11.8 dec/13/24, was 0.11.3 previously
-      # - name: Install deb-s3 (ACL-safe)
-      #   run: |
-      #     sudo gem uninstall -aIx deb-s3 || true
-      #     sudo gem install deb-s3 --no-document
-      #     deb-s3 --version
-
+      # Add in secrets if needed.
+      - name: Inject build secrets
+        run: |
+          [ -n "$CLAIM_CERT" ] && printf '%s' "$CLAIM_CERT" > provisioning/claim-cert.pem || true
+          [ -n "$CLAIM_PRIVATE_KEY" ] && printf '%s' "$CLAIM_PRIVATE_KEY" > provisioning/claim-private-key.pem || true
+        env:
+          CLAIM_CERT: ${{ secrets.CLAIM_CERT }}
+          CLAIM_PRIVATE_KEY: ${{ secrets.CLAIM_PRIVATE_KEY }}
 
       - name: Generate .deb packages
         run: ${{ inputs.command }}
@@ -95,43 +100,3 @@ jobs:
           for f in packages/*.deb; do
             aws s3 cp "$f" "s3://${{ inputs.repo_bucket }}/pool/${{ inputs.repo_codename }}/"
           done
-
-        # gpg -k
-        # gpg -K
-        # deb-s3 upload --bucket=${{inputs.repo_bucket}} --s3-region=${{inputs.repo_region}} \
-        # --preserve-versions --codename=${{inputs.repo_codename}} --sign=${{inputs.gpg_key_id}} \
-        # packages/*.deb
-      # - name: Publish APT repo to S3 (modern, ACL-free)
-      #   shell: bash
-      #   run: |
-      #     set -euo pipefail
-
-      #     CODENAME="${{ inputs.repo_codename }}"
-      #     BUCKET="${{ inputs.repo_bucket }}"
-
-      #     # Create repo layout
-      #     mkdir -p repo/pool/${CODENAME}
-      #     mkdir -p repo/dists/${CODENAME}/main/binary-armhf
-
-      #     # Copy packages
-      #     cp packages/*.deb repo/pool/${CODENAME}/
-
-      #     # Generate Packages metadata
-      #     apt-ftparchive packages repo/pool/${CODENAME} \
-      #       > repo/dists/${CODENAME}/main/binary-armhf/Packages
-
-      #     gzip -kf repo/dists/${CODENAME}/main/binary-armhf/Packages
-
-      #     # Generate Release file
-      #     apt-ftparchive release repo/dists/${CODENAME} \
-      #       > repo/dists/${CODENAME}/Release
-
-      #     # Sign Release (modern InRelease format)
-      #     gpg --default-key "${{ inputs.gpg_key_id }}" \
-      #         --batch --yes \
-      #         --clearsign \
-      #         -o repo/dists/${CODENAME}/InRelease \
-      #         repo/dists/${CODENAME}/Release
-
-      #     # Upload to S3 (NO ACLs involved)
-      #     aws s3 sync repo/ "s3://${BUCKET}/" 
