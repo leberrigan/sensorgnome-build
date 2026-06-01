@@ -104,4 +104,7 @@ RUN apt-get install -y \
     tailscale
 
 RUN cp /usr/share/dhcpcd/hooks/10-wpa_supplicant /lib/dhcpcd/dhcpcd-hooks/10-wpa_supplicant
+RUN systemctl disable wpa_supplicant.service
+RUN ln -sf /etc/wpa_supplicant/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+RUN systemctl enable wpa_supplicant@wlan0.service
 RUN systemctl disable tailscaled.service

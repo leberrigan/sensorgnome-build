@@ -36,14 +36,15 @@ RUN apt install -y sensorgnome
 RUN mkdir -p /etc/sensorgnome
 RUN apt-get clean
 
-# Download latest local-ip.co certs, overwriting what comes in the sg-web-portal pkg so it's
-# freshest.
-# Disabled, local-ip not functional... Use self-signed cert for now
+# local-ip.co cert download disabled: service is serving mismatched key/cert pairs (broken)
+# The stable release has an old working cert baked in from before it broke.
+# If local-ip.co fixes their cert rotation, re-enable these lines and add the sed below.
 #RUN curl -L -o /etc/sensorgnome/local-ip.key http://local-ip.co/cert/server.key
 #RUN curl -L -o /etc/sensorgnome/local-ip.pem http://local-ip.co/cert/server.pem
 #RUN bash -c 'curl -L -o - http://local-ip.co/cert/chain.pem >>/etc/sensorgnome/local-ip.pem'
 #RUN bash -c 'chmod 644 /etc/sensorgnome/local-ip.*'
 #RUN openssl x509 -noout -enddate -in /etc/sensorgnome/local-ip.pem
+#RUN sed -i 's|self-signed.pem|local-ip.pem|; s|self-signed.key|local-ip.key|' /etc/caddy/Caddyfile
 
 # Install some python packages for sixfab stuff
 #RUN pip3 install -U atcom pyyaml pyusb smbus2 crc16
