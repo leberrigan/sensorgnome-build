@@ -48,7 +48,7 @@ RUN apt-get clean
 
 # Install some python packages for sixfab stuff
 #RUN pip3 install -U atcom pyyaml pyusb smbus2 crc16
-RUN pip3 install -U atcom
+RUN pip3 install -U --break-system-packages atcom
 
 # Enable SSH (0 == success status code - enable)
 RUN raspi-config nonint do_ssh 0
