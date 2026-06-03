@@ -96,3 +96,10 @@ RUN bash -c 'openssl req -x509 -newkey rsa:2048 -days 3650 -noenc -keyout /etc/s
 
 # Timestamp the Sensorgnome image so we can detect and unset clock
 RUN bash -c 'date +%s >/etc/sensorgnome/image-stamp'
+
+# Write build version to /etc/sensorgnome/version if not already set by the sensorgnome package
+RUN bash -c "[[ -f /etc/sensorgnome/version ]] || echo 'sg-$TYPE-$V' >/etc/sensorgnome/version"
+
+# Create SD card identification file on boot partition (FAT32, Windows-readable).
+# Device ID and boot count are appended on first boot by sg-boot/boottime.sh.
+RUN bash -c 'printf "%s\n%s UTC\n" "$(cat /etc/sensorgnome/version)" "$(date -u -d @$(cat /etc/sensorgnome/image-stamp) +%Y-%m-%d)" >/boot/firmware/SENSORGNOME.txt'
