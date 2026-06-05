@@ -22,6 +22,10 @@ RUN systemctl enable getty@tty1
 RUN rm /usr/share/userconf-pi/sshd_banner
 RUN bash -c '(echo; echo export SYSTEMD_LESS=XRF) >> /home/$NU/.bashrc'
 
+# Add Debian main so packages not in Raspbian (e.g. libairspyhf0) are available.
+# debian-archive-keyring is already installed in the base image.
+RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian/ bookworm main' >/etc/apt/sources.list.d/debian-bookworm.list"
+
 # Configure sensorgnome repository
 RUN bash -c "curl -1sLf -o /usr/share/keyrings/sensorgnome.gpg 'https://sensorgnome-982081078525-us-east-1-an.s3.us-east-1.amazonaws.com/sensorgnome.gpg'"
 RUN gpg --no-default-keyring --keyring /usr/share/keyrings/sensorgnome.gpg --list-keys
@@ -97,9 +101,9 @@ RUN bash -c 'openssl req -x509 -newkey rsa:2048 -days 3650 -noenc -keyout /etc/s
 # Timestamp the Sensorgnome image so we can detect and unset clock
 RUN bash -c 'date +%s >/etc/sensorgnome/image-stamp'
 
-# Write build version to /etc/sensorgnome/version if not already set by the sensorgnome package
-RUN bash -c "[[ -f /etc/sensorgnome/version ]] || echo 'sg-$TYPE-$V' >/etc/sensorgnome/version"
+# Write build version to /etc/sensorgnome/version (always overwrite so image version is accurate)
+RUN bash -c "echo 'sg-$TYPE-$V' >/etc/sensorgnome/version"
 
 # Create SD card identification file on boot partition (FAT32, Windows-readable).
 # Device ID and boot count are appended on first boot by sg-boot/boottime.sh.
-RUN bash -c 'printf "%s\n%s UTC\n" "$(cat /etc/sensorgnome/version)" "$(date -u -d @$(cat /etc/sensorgnome/image-stamp) +%Y-%m-%d)" >/boot/firmware/SENSORGNOME.txt'
+RUN bash -c 'printf "%s\n%s UTC\n" "$(cat /etc/sensorgnome/version)" "$(date -u -d @$(cat /etc/sensorgnome/image-stamp) +%Y-%m-%d %H:%M)" >/boot/firmware/SENSORGNOME.txt'
