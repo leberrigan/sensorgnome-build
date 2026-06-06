@@ -37,6 +37,33 @@ RUN gpg --no-default-keyring --keyring /usr/share/keyrings/sensorgnome.gpg --lis
 RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/sensorgnome.gpg] https://sensorgnome-982081078525-us-east-1-an.s3.us-east-1.amazonaws.com/' $CODENAME main >/etc/apt/sources.list.d/sensorgnome.list"
 RUN apt update
 
+# Build libairspyhf and the SoapySDR AirspyHF plugin from source.
+# libairspyhf0 has no armhf build in Raspbian or Debian main repos.
+# We build both the C library and the SoapySDR plugin (needed by gr_airspyhf.py),
+# then register a dummy libairspyhf0 .deb with dpkg so that apt can satisfy
+# sensorgnome-gnuradio's Depends: libairspyhf0 when it installs below.
+RUN apt install -y cmake libusb-1.0-0-dev libsoapysdr-dev
+
+RUN git clone --depth=1 --branch v1.1.5 https://github.com/airspy/airspyhf.git /tmp/airspyhf && \
+    cmake -S /tmp/airspyhf -B /tmp/airspyhf/build \
+          -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build /tmp/airspyhf/build -j2 && \
+    cmake --install /tmp/airspyhf/build
+
+RUN git clone --depth=1 https://github.com/pothosware/SoapyAirspyHF.git /tmp/SoapyAirspyHF && \
+    cmake -S /tmp/SoapyAirspyHF -B /tmp/SoapyAirspyHF/build \
+          -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build /tmp/SoapyAirspyHF/build -j2 && \
+    cmake --install /tmp/SoapyAirspyHF/build
+
+RUN bash -c "mkdir -p /tmp/pkg/DEBIAN && \
+    printf 'Package: libairspyhf0\nVersion: 1.1.5-sg\nArchitecture: armhf\nDepends: libusb-1.0-0\nMaintainer: Sensorgnome\nDescription: AirspyHF+ USB library (built from source)\n' \
+        > /tmp/pkg/DEBIAN/control && \
+    dpkg-deb -Zxz --build /tmp/pkg /tmp/libairspyhf0.deb && \
+    dpkg --install /tmp/libairspyhf0.deb"
+
+RUN rm -rf /tmp/airspyhf /tmp/SoapyAirspyHF /tmp/pkg /tmp/libairspyhf0.deb
+
 # Install sensorgnome packages (the has-double line can be deleted when no pre 2023-080 SG exists)
 RUN dpkg --print-architecture
 RUN mkdir -p /opt/sensorgnome/upgrader
