@@ -23,8 +23,13 @@ RUN rm /usr/share/userconf-pi/sshd_banner
 RUN bash -c '(echo; echo export SYSTEMD_LESS=XRF) >> /home/$NU/.bashrc'
 
 # Add Debian main so packages not in Raspbian (e.g. libairspyhf0) are available.
-# debian-archive-keyring is already installed in the base image.
-RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian/ bookworm main' >/etc/apt/sources.list.d/debian-bookworm.list"
+# Fetch all three Debian Bookworm signing keys: the two used by backports plus the
+# Bookworm-specific main archive key (F8D2585B8783D481).
+RUN bash -c "(curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6ED0E7B82643E131'; \
+              curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x78DBA3BC47EF2265'; \
+              curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF8D2585B8783D481') \
+             | gpg --dearmor -o /usr/share/keyrings/debian-bookworm-main-keyring.gpg"
+RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/debian-bookworm-main-keyring.gpg] http://deb.debian.org/debian/ bookworm main' >/etc/apt/sources.list.d/debian-bookworm.list"
 
 # Configure sensorgnome repository
 RUN bash -c "curl -1sLf -o /usr/share/keyrings/sensorgnome.gpg 'https://sensorgnome-982081078525-us-east-1-an.s3.us-east-1.amazonaws.com/sensorgnome.gpg'"
