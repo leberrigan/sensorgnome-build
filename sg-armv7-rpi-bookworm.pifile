@@ -3,7 +3,7 @@
 FROM images/base-$TYPE.img
 TO images/sg-$TYPE-temp.img
 
-PUMP 2000M
+PUMP 4000M
 
 # Create data directories, these will be copied to the new partition on first boot
 mkdir -p /data/SGdata
@@ -36,6 +36,20 @@ RUN bash -c "curl -1sLf -o /usr/share/keyrings/sensorgnome.gpg 'https://sensorgn
 RUN gpg --no-default-keyring --keyring /usr/share/keyrings/sensorgnome.gpg --list-keys
 RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/sensorgnome.gpg] https://sensorgnome-982081078525-us-east-1-an.s3.us-east-1.amazonaws.com/' $CODENAME main >/etc/apt/sources.list.d/sensorgnome.list"
 RUN apt update
+
+# Install GNU Radio runtime components directly, bypassing the 'gnuradio' metapackage
+# which hard-depends on PyQt5, python3-opengl, libjs-mathjax, a terminal emulator, etc.
+# (all needed for GRC companion, none needed for headless Python flow graphs).
+RUN apt install -y \
+    libgnuradio-runtime3.10.5 \
+    libgnuradio-filter3.10.5 \
+    libgnuradio-blocks3.10.5 \
+    libgnuradio-audio3.10.5 \
+    libgnuradio-soapy3.10.5 \
+    libgnuradio-fft3.10.5 \
+    gr-osmosdr \
+    python3-numpy python3-scipy python3-sklearn
+RUN apt-get clean
 
 # Build libairspyhf and the SoapySDR AirspyHF plugin from source.
 # libairspyhf0 has no armhf build in Raspbian or Debian main repos.
