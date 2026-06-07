@@ -40,7 +40,7 @@ RUN apt update
 # Install GNU Radio runtime components directly, bypassing the 'gnuradio' metapackage
 # which hard-depends on PyQt5, python3-opengl, libjs-mathjax, a terminal emulator, etc.
 # (all needed for GRC companion, none needed for headless Python flow graphs).
-RUN apt install -y \
+RUN apt install -y --no-install-recommends \
     libgnuradio-runtime3.10.5 \
     libgnuradio-filter3.10.5 \
     libgnuradio-blocks3.10.5 \
