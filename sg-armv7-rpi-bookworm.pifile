@@ -22,9 +22,6 @@ RUN systemctl enable getty@tty1
 RUN rm /usr/share/userconf-pi/sshd_banner
 RUN bash -c '(echo; echo export SYSTEMD_LESS=XRF) >> /home/$NU/.bashrc'
 
-# Add Debian main. debian-archive-keyring (installed in base image) holds the Bookworm signing key.
-RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian/ bookworm main' >/etc/apt/sources.list.d/debian-bookworm.list"
-
 # Configure sensorgnome repository
 RUN bash -c "curl -1sLf -o /usr/share/keyrings/sensorgnome.gpg 'https://sensorgnome-982081078525-us-east-1-an.s3.us-east-1.amazonaws.com/sensorgnome.gpg'"
 RUN gpg --no-default-keyring --keyring /usr/share/keyrings/sensorgnome.gpg --list-keys
@@ -45,13 +42,14 @@ RUN apt install -y --no-install-recommends \
     python3-numpy python3-scipy python3-sklearn
 RUN apt-get clean
 
-# python3-gnuradio from Debian Bookworm has a version conflict with Raspbian's
-# libgnuradio-runtime3.10.5 (different version suffix), so apt refuses to install it.
-# Download and extract the Python files directly — no dep checking, just the files.
-RUN cd /tmp && apt-get download python3-gnuradio && \
-    dpkg -x python3-gnuradio_*.deb gnuradio-py && \
-    cp -r gnuradio-py/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && \
-    rm -rf gnuradio-py python3-gnuradio_*.deb
+# python3-gnuradio can't be installed via apt (version conflict between Raspbian's
+# libgnuradio-runtime3.10.5 and Debian's exact-version dep). Fetch the .deb directly
+# from the Debian archive and extract the Python files — no apt, no keyring, no dep check.
+RUN curl -fsSL -o /tmp/python3-gnuradio.deb \
+    'http://ftp.debian.org/debian/pool/main/g/gnuradio/python3-gnuradio_3.10.5.1-4_armhf.deb' && \
+    dpkg -x /tmp/python3-gnuradio.deb /tmp/gnuradio-py && \
+    cp -r /tmp/gnuradio-py/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && \
+    rm -rf /tmp/gnuradio-py /tmp/python3-gnuradio.deb
 
 # Build libairspyhf and the SoapySDR AirspyHF plugin from source.
 # libairspyhf0 has no armhf build in Raspbian or Debian main repos.
