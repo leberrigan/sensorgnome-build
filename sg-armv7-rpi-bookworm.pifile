@@ -48,16 +48,9 @@ RUN apt install -y --no-install-recommends \
     libgnuradio-soapy3.10.5 \
     libgnuradio-fft3.10.5 \
     gr-osmosdr \
+    python3-gnuradio \
     python3-numpy python3-scipy python3-sklearn
 RUN apt-get clean
-
-# The 'gnuradio' package owns all Python files under
-# /usr/lib/python3/dist-packages/gnuradio/ but hard-depends on Qt5/GUI
-# packages. Extract just the Python tree without installing the package.
-RUN cd /tmp && apt-get download gnuradio && \
-    dpkg -x gnuradio_*.deb gnuradio-files && \
-    cp -r gnuradio-files/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && \
-    rm -rf gnuradio-files gnuradio_*.deb
 
 # Build libairspyhf and the SoapySDR AirspyHF plugin from source.
 # libairspyhf0 has no armhf build in Raspbian or Debian main repos.
