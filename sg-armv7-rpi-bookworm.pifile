@@ -22,10 +22,12 @@ RUN systemctl enable getty@tty1
 RUN rm /usr/share/userconf-pi/sshd_banner
 RUN bash -c '(echo; echo export SYSTEMD_LESS=XRF) >> /home/$NU/.bashrc'
 
-# The base image configures deb.debian.org/debian with a keyring that only has one
-# of three Bookworm signing keys (F8D2585B8783D481). Replace signed-by with
-# [trusted=yes] in both Debian source files so apt update can fetch package lists.
-RUN bash -c "sed -i 's|\[signed-by=[^]]*\]|[trusted=yes]|g' /etc/apt/sources.list.d/debian-bookworm.list /etc/apt/sources.list.d/bookworm-backports.list"
+# The base image configures deb.debian.org/debian but the Raspbian keyring is missing
+# two of the three Bookworm signing keys. Overwrite both Debian source files to use
+# [trusted=yes] so apt update can fetch package lists (python3-gnuradio, libsoapysdr-dev).
+# Using '>' so this works whether the files already exist or not.
+RUN bash -c "echo 'deb [trusted=yes] http://deb.debian.org/debian/ bookworm main' >/etc/apt/sources.list.d/debian-bookworm.list"
+RUN bash -c "echo 'deb [trusted=yes] http://deb.debian.org/debian/ bookworm-backports main' >/etc/apt/sources.list.d/bookworm-backports.list"
 
 # Configure sensorgnome repository
 RUN bash -c "curl -1sLf -o /usr/share/keyrings/sensorgnome.gpg 'https://sensorgnome-982081078525-us-east-1-an.s3.us-east-1.amazonaws.com/sensorgnome.gpg'"
