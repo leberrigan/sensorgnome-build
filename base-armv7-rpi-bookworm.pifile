@@ -31,9 +31,9 @@ RUN bash -c "curl -1sLf https://pkgs.tailscale.com/stable/raspbian/bookworm.noar
 RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/raspbian bookworm main' >/etc/apt/sources.list.d/tailscale.list"
 
 # Set up Debian bookworm main + backports.
-# Main gives access to packages not in Raspbian (e.g. libairspyhf0). Since RPi OS is
-# based on Debian Bookworm, packages are fully compatible; Raspbian packages take
-# precedence via their higher version numbers where they overlap.
+# Main gives access to packages not in Raspbian (e.g. libairspyhf0, python3-gnuradio,
+# libsoapysdr-dev). Since RPi OS is based on Debian Bookworm, packages are fully
+# compatible; Raspbian packages take precedence via their higher version numbers.
 RUN bash -c "(curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6ED0E7B82643E131'; \
               curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x78DBA3BC47EF2265'; \
               curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF8D2585B8783D481') \

@@ -51,8 +51,9 @@ RUN apt-get clean
 
 # python3-gnuradio is in Debian Bookworm only, not Raspbian. It also has a version
 # conflict with Raspbian's libgnuradio-runtime3.10.5 so apt install won't work.
-# Use apt-get download (no dep check) and extract the Python files only.
-RUN bash -c "cd /var/tmp && apt-get download python3-gnuradio && dpkg -x python3-gnuradio_*.deb gnuradio-py && cp -r gnuradio-py/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && rm -rf gnuradio-py python3-gnuradio_*.deb"
+# Run a targeted apt-get update for only the Bookworm source file immediately before
+# the download so the package list is fresh in the same execution context.
+RUN bash -c "apt-get update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/debian-bookworm.list -o Dir::Etc::sourceparts=- && cd /var/tmp && apt-get download python3-gnuradio && dpkg -x python3-gnuradio_*.deb gnuradio-py && cp -r gnuradio-py/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && rm -rf gnuradio-py python3-gnuradio_*.deb"
 
 # Build libairspyhf and the SoapySDR AirspyHF plugin from source.
 # libairspyhf0 has no armhf build in Raspbian or Debian main repos.
