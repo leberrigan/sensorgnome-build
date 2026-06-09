@@ -23,11 +23,9 @@ RUN rm /usr/share/userconf-pi/sshd_banner
 RUN bash -c '(echo; echo export SYSTEMD_LESS=XRF) >> /home/$NU/.bashrc'
 
 # Raspberry Pi OS ships with mirror.umd.edu as a Raspbian CDN fallback. That mirror
-# is unreachable from GitHub Actions. Lower Raspbian priority to 100 so packages
-# available in both Raspbian and Debian Bookworm prefer deb.debian.org instead.
-# Raspbian-only packages (e.g. RPi-specific builds, sensorgnome packages) remain
-# installable at priority 100 when no Debian alternative exists.
-RUN bash -c "printf 'Package: *\nPin: release o=Raspbian\nPin-Priority: 100\n' >/etc/apt/preferences.d/raspbian-low-priority"
+# is unreachable from GitHub Actions. Remove it from all apt source files so apt
+# never attempts to download packages from there.
+RUN bash -c "find /etc/apt -name '*.list' | xargs sed -i '/mirror.umd.edu/d' 2>/dev/null; true"
 
 # Configure sensorgnome repository
 RUN bash -c "curl -1sLf -o /usr/share/keyrings/sensorgnome.gpg 'https://sensorgnome-982081078525-us-east-1-an.s3.us-east-1.amazonaws.com/sensorgnome.gpg'"
@@ -38,7 +36,9 @@ RUN apt update
 # Install GNU Radio runtime components directly, bypassing the 'gnuradio' metapackage
 # which hard-depends on PyQt5, python3-opengl, libjs-mathjax, a terminal emulator, etc.
 # (all needed for GRC companion, none needed for headless Python flow graphs).
-RUN apt install -y --no-install-recommends \
+# -t bookworm forces apt to resolve all packages and their deps (libgfortran5, liblapack3,
+# etc.) from deb.debian.org, bypassing the Raspbian CDN that routes to mirror.umd.edu.
+RUN apt-get install -y --no-install-recommends -t bookworm \
     libgnuradio-runtime3.10.5 \
     libgnuradio-filter3.10.5 \
     libgnuradio-blocks3.10.5 \
