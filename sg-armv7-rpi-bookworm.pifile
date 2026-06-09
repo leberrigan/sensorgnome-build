@@ -44,12 +44,9 @@ RUN apt-get clean
 
 # python3-gnuradio can't be installed via apt (version conflict between Raspbian's
 # libgnuradio-runtime3.10.5 and Debian's exact-version dep). Fetch the .deb directly
-# from the Debian archive and extract the Python files — no apt, no keyring, no dep check.
-RUN curl -fsSL -o /tmp/python3-gnuradio.deb \
-    'http://ftp.debian.org/debian/pool/main/g/gnuradio/python3-gnuradio_3.10.5.1-4_armhf.deb' && \
-    dpkg -x /tmp/python3-gnuradio.deb /tmp/gnuradio-py && \
-    cp -r /tmp/gnuradio-py/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && \
-    rm -rf /tmp/gnuradio-py /tmp/python3-gnuradio.deb
+# and extract — no apt, no keyring, no dep check.
+# Use bash -c and /var/tmp (root fs, not tmpfs) to avoid pimod /tmp tmpfs issues.
+RUN bash -c "curl -fsSL -o /var/tmp/python3-gnuradio.deb 'http://ftp.debian.org/debian/pool/main/g/gnuradio/python3-gnuradio_3.10.5.1-4_armhf.deb' && dpkg -x /var/tmp/python3-gnuradio.deb /var/tmp/gnuradio-py && cp -r /var/tmp/gnuradio-py/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && rm -rf /var/tmp/gnuradio-py /var/tmp/python3-gnuradio.deb"
 
 # Build libairspyhf and the SoapySDR AirspyHF plugin from source.
 # libairspyhf0 has no armhf build in Raspbian or Debian main repos.
