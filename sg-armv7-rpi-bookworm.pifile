@@ -22,6 +22,13 @@ RUN systemctl enable getty@tty1
 RUN rm /usr/share/userconf-pi/sshd_banner
 RUN bash -c '(echo; echo export SYSTEMD_LESS=XRF) >> /home/$NU/.bashrc'
 
+# Raspberry Pi OS ships with mirror.umd.edu as a Raspbian CDN fallback. That mirror
+# is unreachable from GitHub Actions. Lower Raspbian priority to 100 so packages
+# available in both Raspbian and Debian Bookworm prefer deb.debian.org instead.
+# Raspbian-only packages (e.g. RPi-specific builds, sensorgnome packages) remain
+# installable at priority 100 when no Debian alternative exists.
+RUN bash -c "printf 'Package: *\nPin: release o=Raspbian\nPin-Priority: 100\n' >/etc/apt/preferences.d/raspbian-low-priority"
+
 # Configure sensorgnome repository
 RUN bash -c "curl -1sLf -o /usr/share/keyrings/sensorgnome.gpg 'https://sensorgnome-982081078525-us-east-1-an.s3.us-east-1.amazonaws.com/sensorgnome.gpg'"
 RUN gpg --no-default-keyring --keyring /usr/share/keyrings/sensorgnome.gpg --list-keys
