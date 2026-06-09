@@ -22,9 +22,10 @@ RUN systemctl enable getty@tty1
 RUN rm /usr/share/userconf-pi/sshd_banner
 RUN bash -c '(echo; echo export SYSTEMD_LESS=XRF) >> /home/$NU/.bashrc'
 
-# Add Debian Bookworm main with trusted=yes — no keyring needed in this controlled build
-# environment. This makes python3-gnuradio and libsoapysdr-dev available.
-RUN bash -c "echo 'deb [trusted=yes] http://deb.debian.org/debian/ bookworm main' >/etc/apt/sources.list.d/debian-bookworm.list"
+# The base image configures deb.debian.org/debian with a keyring that only has one
+# of three Bookworm signing keys (F8D2585B8783D481). Replace signed-by with
+# [trusted=yes] in both Debian source files so apt update can fetch package lists.
+RUN bash -c "sed -i 's|\[signed-by=[^]]*\]|[trusted=yes]|g' /etc/apt/sources.list.d/debian-bookworm.list /etc/apt/sources.list.d/bookworm-backports.list"
 
 # Configure sensorgnome repository
 RUN bash -c "curl -1sLf -o /usr/share/keyrings/sensorgnome.gpg 'https://sensorgnome-982081078525-us-east-1-an.s3.us-east-1.amazonaws.com/sensorgnome.gpg'"
@@ -46,9 +47,9 @@ RUN apt install -y --no-install-recommends \
     python3-numpy python3-scipy python3-sklearn
 RUN apt-get clean
 
-# python3-gnuradio can't be installed via apt (version conflict with Raspbian's
-# libgnuradio-runtime3.10.5). Download with apt-get download (no dep check) then extract.
-# Uses /var/tmp (root fs) and bash -c to ensure atomicity in pimod's nspawn environment.
+# python3-gnuradio is in Debian Bookworm only, not Raspbian. It also has a version
+# conflict with Raspbian's libgnuradio-runtime3.10.5 so apt install won't work.
+# Use apt-get download (no dep check) and extract the Python files only.
 RUN bash -c "cd /var/tmp && apt-get download python3-gnuradio && dpkg -x python3-gnuradio_*.deb gnuradio-py && cp -r gnuradio-py/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && rm -rf gnuradio-py python3-gnuradio_*.deb"
 
 # Build libairspyhf and the SoapySDR AirspyHF plugin from source.
@@ -56,7 +57,10 @@ RUN bash -c "cd /var/tmp && apt-get download python3-gnuradio && dpkg -x python3
 # We build both the C library and the SoapySDR plugin (needed by gr_airspyhf.py),
 # then register a dummy libairspyhf0 .deb with dpkg so that apt can satisfy
 # sensorgnome-gnuradio's Depends: libairspyhf0 when it installs below.
-RUN apt install -y cmake libusb-1.0-0-dev libsoapysdr-dev
+# cmake and libusb are in Raspbian; libsoapysdr-dev is Debian-only (now accessible
+# from the source added above).
+RUN apt install -y cmake libusb-1.0-0-dev
+RUN apt install -y libsoapysdr-dev
 
 RUN git clone --depth=1 --branch v1.1.5 https://github.com/airspy/airspyhf.git /tmp/airspyhf && \
     cmake -S /tmp/airspyhf -B /tmp/airspyhf/build \
