@@ -22,10 +22,17 @@ RUN systemctl enable getty@tty1
 RUN rm /usr/share/userconf-pi/sshd_banner
 RUN bash -c '(echo; echo export SYSTEMD_LESS=XRF) >> /home/$NU/.bashrc'
 
-# Raspberry Pi OS ships with mirror.umd.edu as a Raspbian CDN fallback. That mirror
-# is unreachable from GitHub Actions. Remove it from all apt source files so apt
-# never attempts to download packages from there.
-RUN bash -c "find /etc/apt -name '*.list' | xargs sed -i '/mirror.umd.edu/d' 2>/dev/null; true"
+# Raspberry Pi OS apt sources use raspbian.raspberrypi.com (CDN) and a mirror://
+# mirror-list protocol entry pointing to mirrors.raspbian.org. From GitHub Actions
+# (US IP), both route to mirror.umd.edu which is unreachable. Replace the CDN URL
+# with archive.raspbian.org (canonical primary archive, not CDN), remove the mirror://
+# entry (redundant once we have a direct URL), and remove any remaining mirror.umd.edu
+# lines that may have crept in from other configs.
+RUN bash -c "find /etc/apt -name '*.list' | xargs sed -i \
+    -e 's|raspbian.raspberrypi.com/raspbian|archive.raspbian.org/raspbian|g' \
+    -e '/mirrors.raspbian.org/d' \
+    -e '/mirror.umd.edu/d' \
+    2>/dev/null; true"
 
 # Configure sensorgnome repository
 RUN bash -c "curl -1sLf -o /usr/share/keyrings/sensorgnome.gpg 'https://sensorgnome-982081078525-us-east-1-an.s3.us-east-1.amazonaws.com/sensorgnome.gpg'"
