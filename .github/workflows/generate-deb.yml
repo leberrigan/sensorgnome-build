@@ -74,18 +74,6 @@ jobs:
           CLAIM_CERT: ${{ secrets.CLAIM_CERT }}
           CLAIM_PRIVATE_KEY: ${{ secrets.CLAIM_PRIVATE_KEY }}
 
-      - name: Generate .deb packages
-        run: ${{ inputs.command }}
-        shell: bash
-      
-      - run: ls -ls packages
-
-      # Upload github artifacts for debugging purposes
-      - uses: actions/upload-artifact@v4
-        with:
-          name: deb-packages
-          path: packages
-
       - name: Configure AWS Credentials
         # See https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
         uses: aws-actions/configure-aws-credentials@v4
@@ -93,6 +81,18 @@ jobs:
           role-to-assume: ${{inputs.aws_role}}
           role-session-name: GithubActionsMotus
           aws-region: ${{inputs.repo_region}}
+
+      - name: Generate .deb packages
+        run: ${{ inputs.command }}
+        shell: bash
+
+      - run: ls -ls packages
+
+      # Upload github artifacts for debugging purposes
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-packages
+          path: packages
 
       - name: Insert .debs into repository
         # GPG_TTY needed to avoid `gpg: signing failed: Inappropriate ioctl for device`
