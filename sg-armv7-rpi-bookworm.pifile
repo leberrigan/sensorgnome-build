@@ -40,7 +40,7 @@ RUN bash -c "find /etc/apt -name '*.list' | xargs sed -i \
 RUN bash -c "(curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6ED0E7B82643E131'; \
               curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x78DBA3BC47EF2265'; \
               curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF8D2585B8783D481') \
-             | gpg --dearmor -o /usr/share/keyrings/debian-bookworm-archive-keyring.gpg"
+             | gpg --batch --no-tty --dearmor -o /usr/share/keyrings/debian-bookworm-archive-keyring.gpg"
 
 # Configure sensorgnome repository
 RUN bash -c "curl -1sLf -o /usr/share/keyrings/sensorgnome.gpg 'https://sensorgnome-982081078525-us-east-1-an.s3.us-east-1.amazonaws.com/sensorgnome.gpg'"
