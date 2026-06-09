@@ -34,6 +34,14 @@ RUN bash -c "find /etc/apt -name '*.list' | xargs sed -i \
     -e '/mirror.umd.edu/d' \
     2>/dev/null; true"
 
+# Re-fetch all three Debian Bookworm signing keys so the sg build is self-contained
+# and doesn't depend on the base image having the correct keyring. The base image may
+# be cached from before the 3-key fix was applied.
+RUN bash -c "(curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6ED0E7B82643E131'; \
+              curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x78DBA3BC47EF2265'; \
+              curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF8D2585B8783D481') \
+             | gpg --dearmor -o /usr/share/keyrings/debian-bookworm-archive-keyring.gpg"
+
 # Configure sensorgnome repository
 RUN bash -c "curl -1sLf -o /usr/share/keyrings/sensorgnome.gpg 'https://sensorgnome-982081078525-us-east-1-an.s3.us-east-1.amazonaws.com/sensorgnome.gpg'"
 RUN gpg --no-default-keyring --keyring /usr/share/keyrings/sensorgnome.gpg --list-keys
@@ -56,10 +64,11 @@ RUN apt-get install -y --no-install-recommends -t bookworm \
     python3-numpy python3-scipy python3-sklearn
 RUN apt-get clean
 
-# python3-gnuradio is only in Debian Bookworm, not Raspbian, and the Debian package list
-# may not be available in the apt database during the pimod build. Fetch and extract
-# directly from deb.debian.org to avoid apt database dependency entirely.
-RUN bash -c "cd /var/tmp && curl -fsSL 'http://deb.debian.org/debian/pool/main/g/gnuradio/python3-gnuradio_3.10.5.1-4_armhf.deb' -o py-gr.deb && dpkg -x py-gr.deb py-gr && cp -r py-gr/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && rm -rf py-gr py-gr.deb"
+# python3-gnuradio is only in Debian Bookworm, not Raspbian. Now that the Debian
+# Bookworm keyring is set up above and apt update has run, apt-get download can find
+# it. Using apt-get download (no dep check) avoids the version conflict with Raspbian's
+# libgnuradio-runtime3.10.5; dpkg -x extracts the Python files only.
+RUN bash -c "cd /var/tmp && apt-get download python3-gnuradio && dpkg -x python3-gnuradio_*.deb py-gr && cp -r py-gr/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && rm -rf py-gr python3-gnuradio_*.deb"
 
 # Build libairspyhf and the SoapySDR AirspyHF plugin from source.
 # libairspyhf0 has no armhf build in Raspbian or Debian main repos.
