@@ -62,10 +62,18 @@ RUN apt-get clean
 # apt-get download + dpkg -x to extract only the Python dist-packages content.
 RUN bash -c "cd /var/tmp && apt-get download gnuradio && dpkg -x gnuradio_*.deb py-gr && cp -r py-gr/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && rm -rf py-gr gnuradio_*.deb"
 
-# Build the SoapySDR AirspyHF plugin from source.
-# libairspyhf1 and its -dev headers are in Debian Bookworm (1.6.8-3, armhf).
-# libsoapysdr-dev is also only in Debian Bookworm, not Raspbian — use -t bookworm for all.
-RUN apt-get install -y -t bookworm cmake libsoapysdr-dev libairspyhf-dev
+# Build libairspyhf from source (provides airspyhf.h for SoapyAirspyHF cmake build).
+# libairspyhf-dev from Debian Bookworm conflicts with Raspbian's libairspyhf packages,
+# so we build the library ourselves. cmake and libsoapysdr-dev are installed first:
+# libsoapysdr-dev is Debian-only; cmake is in Raspbian but -t bookworm is fine for both.
+RUN apt-get install -y -t bookworm cmake libsoapysdr-dev
+
+RUN git clone --depth=1 --branch 1.6.8 https://github.com/airspy/airspyhf.git /tmp/airspyhf && \
+    cmake -S /tmp/airspyhf -B /tmp/airspyhf/build \
+          -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build /tmp/airspyhf/build -j2 && \
+    cmake --install /tmp/airspyhf/build && \
+    ldconfig
 
 RUN git clone --depth=1 https://github.com/pothosware/SoapyAirspyHF.git /tmp/SoapyAirspyHF && \
     cmake -S /tmp/SoapyAirspyHF -B /tmp/SoapyAirspyHF/build \
@@ -79,6 +87,14 @@ RUN git clone --depth=1 https://github.com/pothosware/SoapyAirspyHF.git /tmp/Soa
     find /usr/lib -name 'SoapyAirspyHF.so' ! -path "$MODDIR/*" -exec cp {} "$MODDIR/" \; && \
     echo "=== SoapySDR modules dir ===" && \
     ls -la "$MODDIR/"
+
+# Register a dummy libairspyhf1 deb so apt can satisfy sensorgnome-gnuradio's
+# Depends: libairspyhf1.  The real library files were installed by cmake above.
+RUN bash -c "mkdir -p /tmp/pkg/DEBIAN && \
+    printf 'Package: libairspyhf1\nVersion: 1.6.8-sg\nArchitecture: armhf\nDepends: libusb-1.0-0\nMaintainer: Sensorgnome\nDescription: AirspyHF+ USB library (built from source)\n' \
+        > /tmp/pkg/DEBIAN/control && \
+    dpkg-deb -Zxz --build /tmp/pkg /tmp/libairspyhf1.deb && \
+    dpkg --install /tmp/libairspyhf1.deb"
 
 
 # Install sensorgnome packages (the has-double line can be deleted when no pre 2023-080 SG exists)
