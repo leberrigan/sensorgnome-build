@@ -60,7 +60,7 @@ RUN apt-get clean
 # python3-gnuradio — that package does not exist in Bookworm). The 'gnuradio' package
 # depends on PyQt5/gnuradio-companion/etc. which we don't want, so we use
 # apt-get download + dpkg -x to extract only the Python dist-packages content.
-RUN bash -c "cd /var/tmp && apt-get download gnuradio && dpkg -x gnuradio_*.deb py-gr && cp -r py-gr/usr/lib/python3/dist-packages/gnuradio /usr/lib/python3/dist-packages/ && rm -rf py-gr gnuradio_*.deb"
+RUN bash -c "cd /var/tmp && apt-get download gnuradio && dpkg -x gnuradio_*.deb py-gr && cp -r py-gr/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && rm -rf py-gr gnuradio_*.deb"
 
 # Build libairspyhf and the SoapySDR AirspyHF plugin from source.
 # libairspyhf0 has no armhf build in Raspbian or Debian main repos.
