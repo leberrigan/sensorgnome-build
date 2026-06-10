@@ -62,19 +62,10 @@ RUN apt-get clean
 # apt-get download + dpkg -x to extract only the Python dist-packages content.
 RUN bash -c "cd /var/tmp && apt-get download gnuradio && dpkg -x gnuradio_*.deb py-gr && cp -r py-gr/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && rm -rf py-gr gnuradio_*.deb"
 
-# Build libairspyhf and the SoapySDR AirspyHF plugin from source.
-# libairspyhf0 has no armhf build in Raspbian or Debian main repos.
-# We build both the C library and the SoapySDR plugin (needed by gr_airspyhf.py),
-# then register a dummy libairspyhf0 .deb with dpkg so that apt can satisfy
-# sensorgnome-gnuradio's Depends: libairspyhf0 when it installs below.
-RUN apt install -y cmake libusb-1.0-0-dev libsoapysdr-dev
-
-RUN git clone --depth=1 --branch v1.1.5 https://github.com/airspy/airspyhf.git /tmp/airspyhf && \
-    cmake -S /tmp/airspyhf -B /tmp/airspyhf/build \
-          -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release && \
-    cmake --build /tmp/airspyhf/build -j2 && \
-    cmake --install /tmp/airspyhf/build && \
-    ldconfig
+# Build the SoapySDR AirspyHF plugin from source.
+# libairspyhf1 and its -dev headers are in Debian Bookworm (1.6.8-3, armhf).
+# libsoapysdr-dev is also only in Debian Bookworm, not Raspbian — use -t bookworm for all.
+RUN apt-get install -y -t bookworm cmake libsoapysdr-dev libairspyhf-dev
 
 RUN git clone --depth=1 https://github.com/pothosware/SoapyAirspyHF.git /tmp/SoapyAirspyHF && \
     cmake -S /tmp/SoapyAirspyHF -B /tmp/SoapyAirspyHF/build \
@@ -89,13 +80,6 @@ RUN git clone --depth=1 https://github.com/pothosware/SoapyAirspyHF.git /tmp/Soa
     echo "=== SoapySDR modules dir ===" && \
     ls -la "$MODDIR/"
 
-RUN bash -c "mkdir -p /tmp/pkg/DEBIAN && \
-    printf 'Package: libairspyhf0\nVersion: 1.1.5-sg\nArchitecture: armhf\nDepends: libusb-1.0-0\nMaintainer: Sensorgnome\nDescription: AirspyHF+ USB library (built from source)\n' \
-        > /tmp/pkg/DEBIAN/control && \
-    dpkg-deb -Zxz --build /tmp/pkg /tmp/libairspyhf0.deb && \
-    dpkg --install /tmp/libairspyhf0.deb"
-
-RUN rm -rf /tmp/airspyhf /tmp/SoapyAirspyHF /tmp/pkg /tmp/libairspyhf0.deb
 
 # Install sensorgnome packages (the has-double line can be deleted when no pre 2023-080 SG exists)
 RUN dpkg --print-architecture
