@@ -63,10 +63,12 @@ RUN apt-get clean
 RUN bash -c "cd /var/tmp && apt-get download gnuradio && dpkg -x gnuradio_*.deb py-gr && cp -r py-gr/usr/lib/python3/dist-packages/. /usr/lib/python3/dist-packages/ && rm -rf py-gr gnuradio_*.deb"
 
 # Build libairspyhf from source (provides airspyhf.h for SoapyAirspyHF cmake build).
-# libairspyhf-dev from Debian Bookworm conflicts with Raspbian's libairspyhf packages,
-# so we build the library ourselves. cmake and libsoapysdr-dev are installed first:
-# libsoapysdr-dev is Debian-only; cmake is in Raspbian but -t bookworm is fine for both.
-RUN apt-get install -y -t bookworm cmake libsoapysdr-dev
+# cmake is available in Raspbian — install it without -t bookworm to avoid conflicts.
+# libsoapysdr-dev is Debian-only and apt-installing it with -t bookworm triggers
+# dependency conflicts that silently kill the whole step; use apt-get download + dpkg -x
+# to extract headers/cmake-config without triggering dependency resolution.
+RUN apt-get install -y cmake libusb-1.0-0-dev
+RUN bash -c "cd /var/tmp && apt-get download -t bookworm libsoapysdr-dev && dpkg -x libsoapysdr-dev_*.deb soapysdr-dev && cp -r soapysdr-dev/usr/. /usr/ && rm -rf soapysdr-dev libsoapysdr-dev_*.deb"
 
 RUN git clone --depth=1 --branch 1.6.8 https://github.com/airspy/airspyhf.git /tmp/airspyhf && \
     cmake -S /tmp/airspyhf -B /tmp/airspyhf/build \
