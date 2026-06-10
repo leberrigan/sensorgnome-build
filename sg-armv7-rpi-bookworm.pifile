@@ -73,13 +73,21 @@ RUN git clone --depth=1 --branch v1.1.5 https://github.com/airspy/airspyhf.git /
     cmake -S /tmp/airspyhf -B /tmp/airspyhf/build \
           -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release && \
     cmake --build /tmp/airspyhf/build -j2 && \
-    cmake --install /tmp/airspyhf/build
+    cmake --install /tmp/airspyhf/build && \
+    ldconfig
 
 RUN git clone --depth=1 https://github.com/pothosware/SoapyAirspyHF.git /tmp/SoapyAirspyHF && \
     cmake -S /tmp/SoapyAirspyHF -B /tmp/SoapyAirspyHF/build \
           -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release && \
     cmake --build /tmp/SoapyAirspyHF/build -j2 && \
-    cmake --install /tmp/SoapyAirspyHF/build
+    cmake --install /tmp/SoapyAirspyHF/build && \
+    echo "=== SoapyAirspyHF install manifest ===" && \
+    cat /tmp/SoapyAirspyHF/build/install_manifest.txt && \
+    MODDIR=/usr/lib/arm-linux-gnueabihf/SoapySDR/modules0.8 && \
+    mkdir -p "$MODDIR" && \
+    find /usr/lib -name 'SoapyAirspyHF.so' ! -path "$MODDIR/*" -exec cp {} "$MODDIR/" \; && \
+    echo "=== SoapySDR modules dir ===" && \
+    ls -la "$MODDIR/"
 
 RUN bash -c "mkdir -p /tmp/pkg/DEBIAN && \
     printf 'Package: libairspyhf0\nVersion: 1.1.5-sg\nArchitecture: armhf\nDepends: libusb-1.0-0\nMaintainer: Sensorgnome\nDescription: AirspyHF+ USB library (built from source)\n' \
