@@ -82,6 +82,9 @@ jobs:
           role-session-name: GithubActionsMotus
           aws-region: ${{inputs.repo_region}}
 
+      - name: Set up QEMU for ARM emulation
+        uses: docker/setup-qemu-action@v3
+
       - name: Generate .deb packages
         run: ${{ inputs.command }}
         shell: bash
