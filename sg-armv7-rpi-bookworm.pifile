@@ -163,4 +163,4 @@ RUN bash -c "echo 'sg-$TYPE-$V' >/etc/sensorgnome/version"
 
 # Create SD card identification file on boot partition (FAT32, Windows-readable).
 # Device ID and boot count are appended on first boot by sg-boot/boottime.sh.
-RUN bash -c 'printf "%s\n%s UTC\n" "$(cat /etc/sensorgnome/version)" "$(date -u -d @$(cat /etc/sensorgnome/image-stamp) +%Y-%m-%d %H:%M)" >/boot/firmware/SENSORGNOME.txt'
+RUN bash -c 'printf "%s\n%s UTC\n" "$(cat /etc/sensorgnome/version)" "$(date -u -d @$(cat /etc/sensorgnome/image-stamp) +%Y-%m-%d\ %H:%M)" >/boot/firmware/SENSORGNOME.txt'
