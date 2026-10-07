@@ -200,20 +200,17 @@ jobs:
         run: ./generate-imager-repo.sh stable images/$SG_IMG images/$SG_ZIP "$SG_VERSION"
 
       # Imager's repo JSON (below) points at this build's real filename under the fixed
-      # "images/pimod/" key (TvE's own convention for testing/development builds), which
-      # differs from the branch-named "images/main/" path the step above uploads to --
-      # so mirror it there too.
-      - name: Upload testing image to AWS S3 repo (pimod/ key, for Imager repo JSON)
-        if: >
-          github.repository == 'leberrigan/sensorgnome-build' &&
-          github.ref == 'refs/heads/main' &&
-          github.event_name == 'push'
-        run: aws s3 cp --no-progress images/$SG_ZIP s3://$S3_PATH/pimod/$SG_ZIP
-
+      # "images/pimod/" key (TvE's own convention for testing/development builds). The
+      # working/default branch here is "pimod" (not "main"), so GIT_REF is already
+      # "/pimod" for this push and the "Upload image to AWS S3 repo" step above has
+      # already landed it at exactly s3://.../images/pimod/$SG_ZIP -- no separate copy
+      # needed. (If this ever runs from a differently-named branch, GIT_REF would no
+      # longer be "/pimod" and this step's condition below would correctly not fire --
+      # at which point a copy step would need to be added back.)
       - name: Update Imager repository JSON (testing)
         if: >
           github.repository == 'leberrigan/sensorgnome-build' &&
-          github.ref == 'refs/heads/main' &&
+          github.ref == 'refs/heads/pimod' &&
           github.event_name == 'push'
         run: ./generate-imager-repo.sh testing images/$SG_IMG images/$SG_ZIP "$SG_VERSION"
 

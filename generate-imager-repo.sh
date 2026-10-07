@@ -46,8 +46,9 @@ BASE_URL=https://$BUCKET.s3.amazonaws.com
 # as $SG_ZIP in build.yml) -- there is no mutable "latest" alias, so this script updates
 # the URL itself on every run, not just the checksums. Key layout mirrors TvE's own
 # bucket convention: releases directly under images/, testing/development builds under
-# images/pimod/ -- build.yml must upload the zip to the matching S3 key for this to
-# resolve (see the "Upload ... to AWS S3 repo" steps there).
+# images/pimod/. build.yml's branch-named upload (images/$GIT_REF/$SG_ZIP) happens to
+# land exactly there already, because the working branch is named "pimod" -- if that
+# branch is ever renamed, build.yml needs a dedicated copy step into images/pimod/.
 ARTIFACTS_API=https://motusaws.duckdns.org/artifacts/api/download
 ZIP_NAME=$(basename "$ZIP")
 
