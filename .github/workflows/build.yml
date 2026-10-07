@@ -173,6 +173,9 @@ jobs:
         shell: bash
       - run: ls -ls images
       - run: echo SG_ZIP=$(cd images; echo sg-*.zip) >>$GITHUB_ENV
+      - run: |
+          echo SG_IMG=${SG_ZIP%.zip}.img >>$GITHUB_ENV
+          echo SG_VERSION=$(echo $SG_ZIP | sed -e 's/^sg-armv7-rpi-\(bookworm-\)\?\(testing-\)\?//' -e 's/\.zip$//') >>$GITHUB_ENV
 
       # Upload github artifacts for debugging purposes
       # (commented out to save 1min of workflow run time)
@@ -183,16 +186,36 @@ jobs:
 
       - name: Upload image to AWS S3 repo
         run: |
-          aws s3 cp --no-progress images/$SG_ZIP s3://$S3_PATH$GIT_REF/$SG_ZIP 
+          aws s3 cp --no-progress images/$SG_ZIP s3://$S3_PATH$GIT_REF/$SG_ZIP
 
-      - name: Upload latest image to AWS S3 repo
+      # Imager's repo JSON (below) points at this build's real filename under a fixed
+      # "images/" key, matching TvE's own bucket layout. On a tag push GIT_REF is empty,
+      # so the step above already uploaded it to exactly s3://.../images/$SG_ZIP -- no
+      # separate copy needed here.
+      - name: Update Imager repository JSON (stable)
         if: >
           github.repository == 'leberrigan/sensorgnome-build' &&
           startsWith(github.ref, 'refs/tags/v') &&
           github.event_name == 'push'
-        run: |
-          IMG=${SG_ZIP/rpi-2.*/rpi-2.latest.zip}
-          aws s3 cp --no-progress images/$SG_ZIP s3://$S3_PATH$GIT_REF/$IMG 
+        run: ./generate-imager-repo.sh stable images/$SG_IMG images/$SG_ZIP "$SG_VERSION"
+
+      # Imager's repo JSON (below) points at this build's real filename under the fixed
+      # "images/pimod/" key (TvE's own convention for testing/development builds), which
+      # differs from the branch-named "images/main/" path the step above uploads to --
+      # so mirror it there too.
+      - name: Upload testing image to AWS S3 repo (pimod/ key, for Imager repo JSON)
+        if: >
+          github.repository == 'leberrigan/sensorgnome-build' &&
+          github.ref == 'refs/heads/main' &&
+          github.event_name == 'push'
+        run: aws s3 cp --no-progress images/$SG_ZIP s3://$S3_PATH/pimod/$SG_ZIP
+
+      - name: Update Imager repository JSON (testing)
+        if: >
+          github.repository == 'leberrigan/sensorgnome-build' &&
+          github.ref == 'refs/heads/main' &&
+          github.event_name == 'push'
+        run: ./generate-imager-repo.sh testing images/$SG_IMG images/$SG_ZIP "$SG_VERSION"
 
       - name: Create annotation with link to images on S3
         run: |

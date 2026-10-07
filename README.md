@@ -177,6 +177,24 @@ The image build process is organized as follows:
 - the `build.sh` tries to avoid re-downloading or re-building things that are already there,
   to start from a clean slate remove the `images` and `packages` directories.
 
+## Raspberry Pi Imager customization (user/password, hostname, SSH, etc.)
+
+Raspberry Pi Imager v2 only offers its "OS Customisation" screen for images it has
+metadata for. To unlock it for Sensorgnome images:
+
+1. Open Raspberry Pi Imager → gear icon (bottom right) → **App Options**.
+2. Under **Content Repository**, paste this URL:
+   `https://sensorgnome-982081078525-us-east-1-an.s3.amazonaws.com/imager-repo.json`
+3. Choose **Sensorgnome (stable)** or **Sensorgnome (testing)** from the OS list — the
+   customization gear icon will now appear for it as usual.
+
+This JSON is generated/published automatically by `generate-imager-repo.sh`, called from
+`build.yml` on every release (stable) and every build on `main` (testing), so it always
+points at the current image with correct checksums. Note: this only unlocks the
+customization *wizard* (hostname/user/password/SSH/locale); it does **not** make the WiFi
+customization tab work, since this image uses `dhcpcd`/`wpa_supplicant` instead of
+NetworkManager (see `base-armv7-rpi-bookworm.pifile`).
+
 ## Debian repository
 
 - Sensorgnome packages get uploaded to a debian repository at https://sensorgnome.s3.amazonaws.com/
