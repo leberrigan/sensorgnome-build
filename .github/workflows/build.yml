@@ -197,7 +197,7 @@ jobs:
           github.repository == 'leberrigan/sensorgnome-build' &&
           startsWith(github.ref, 'refs/tags/v') &&
           github.event_name == 'push'
-        run: ./generate-imager-repo.sh stable images/$SG_IMG images/$SG_ZIP "$SG_VERSION"
+        run: bash generate-imager-repo.sh stable images/$SG_IMG images/$SG_ZIP "$SG_VERSION"
 
       # Imager's repo JSON (below) points at this build's real filename under the fixed
       # "images/pimod/" key (TvE's own convention for testing/development builds). The
@@ -212,7 +212,7 @@ jobs:
           github.repository == 'leberrigan/sensorgnome-build' &&
           github.ref == 'refs/heads/pimod' &&
           github.event_name == 'push'
-        run: ./generate-imager-repo.sh testing images/$SG_IMG images/$SG_ZIP "$SG_VERSION"
+        run: bash generate-imager-repo.sh testing images/$SG_IMG images/$SG_ZIP "$SG_VERSION"
 
       - name: Create annotation with link to images on S3
         run: |
