@@ -41,25 +41,28 @@ BUCKET=sensorgnome-982081078525-us-east-1-an
 REPO_KEY=imager-repo.json
 BASE_URL=https://$BUCKET.s3.amazonaws.com
 
-# Served through the motusaws artifacts API rather than a raw S3 URL. The "key" query
-# param is the S3 key of the real, versioned zip the build just uploaded (same filename
-# as $SG_ZIP in build.yml) -- there is no mutable "latest" alias, so this script updates
-# the URL itself on every run, not just the checksums. Key layout mirrors TvE's own
-# bucket convention: releases directly under images/, testing/development builds under
-# images/pimod/. build.yml's branch-named upload (images/$GIT_REF/$SG_ZIP) happens to
-# land exactly there already, because the working branch is named "pimod" -- if that
-# branch is ever renamed, build.yml needs a dedicated copy step into images/pimod/.
-ARTIFACTS_API=https://motusaws.duckdns.org/artifacts/api/download
+# Plain public S3 URL, same as TvE's own bucket and our icon/repo-JSON -- no auth needed.
+# This used to point at the motusaws.duckdns.org artifacts API, but that endpoint sits
+# behind GitHub OAuth (oauth2_proxy): a browserless request gets a 302 to
+# github.com/login/oauth/authorize, and Imager's libcurl fetch has no browser/session to
+# complete that with, so it just downloaded + hashed the login HTML page. The repo JSON's
+# checksums were computed correctly from the real zip, so Imager reported it as corrupt
+# ("Download appears to be corrupt. SHA256 hash does not match.") -- the real file was
+# never actually served. Key layout mirrors TvE's own bucket convention: releases
+# directly under images/, testing/development builds under images/pimod/. build.yml's
+# branch-named upload (images/$GIT_REF/$SG_ZIP) lands exactly there already, because the
+# working branch is named "pimod" -- if that branch is ever renamed, build.yml needs a
+# dedicated copy step into images/pimod/.
 ZIP_NAME=$(basename "$ZIP")
 
 if [[ $CHANNEL == stable ]]; then
     NAME="Motus Sensorgnome (stable)"
     DESCRIPTION="Sensorgnome $VERSION - stable release. https://docs.motus.org/sensorgnome-v2/"
-    IMG_URL="$ARTIFACTS_API?key=images%2F$ZIP_NAME"
+    IMG_URL="$BASE_URL/images/$ZIP_NAME"
 else
     NAME="Motus Sensorgnome (development)"
     DESCRIPTION="Sensorgnome $VERSION - latest testing build, may be unstable. https://docs.motus.org/sensorgnome-v2/"
-    IMG_URL="$ARTIFACTS_API?key=images%2Fpimod%2F$ZIP_NAME"
+    IMG_URL="$BASE_URL/images/pimod/$ZIP_NAME"
 fi
 
 echo "Hashing $IMG and $ZIP..."
