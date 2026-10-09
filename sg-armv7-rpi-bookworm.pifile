@@ -123,6 +123,16 @@ RUN sed -i "s/ quiet//g" /boot/firmware/cmdline.txt
 RUN sed -i 's/^auto_initramfs=1/auto_initramfs=0/' /boot/firmware/config.txt
 RUN rm /etc/rc3.d/S01resize2fs_once
 
+# Raspberry Pi Imager's OS Customisation writes cmdline.txt's systemd.run= with the
+# legacy /boot/firstrun.sh path (not /boot/firmware/firstrun.sh), and firstrun.sh's own
+# cleanup step likewise targets /boot/cmdline.txt. Without these, systemd tries to exec
+# a file that doesn't exist, the oneshot unit fails, run_success_action=reboot never
+# fires (success-only), and the board hangs forever at the isolated boot target -
+# regardless of what firstrun.sh contains. Dangling symlinks are fine; they resolve
+# once Imager writes the real files onto the FAT32 partition at flash time.
+RUN ln -sf firmware/firstrun.sh /boot/firstrun.sh
+RUN ln -sf firmware/cmdline.txt /boot/cmdline.txt
+
 # Change the avahi/bonjour/mDNS hostname to sgpi.local and enable advertising
 RUN bash -c 'sed -ir -e "/host-name/s/.*/host-name=sgpi/" -e "/publish-workstation/s/no/yes/" /etc/avahi/avahi-daemon.conf'
 

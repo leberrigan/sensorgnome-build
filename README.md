@@ -195,6 +195,21 @@ customization *wizard* (hostname/user/password/SSH/locale); it does **not** make
 customization tab work, since this image uses `dhcpcd`/`wpa_supplicant` instead of
 NetworkManager (see `base-armv7-rpi-bookworm.pifile`).
 
+**Any use of the customization wizard hangs first boot, regardless of which fields are
+set** (fixed as of `sg-armv7-rpi-bookworm.pifile` adding `/boot/firstrun.sh` and
+`/boot/cmdline.txt` compat symlinks -- see below; this note applies to images built before
+that fix). Imager writes `cmdline.txt`'s `systemd.run=/boot/firstrun.sh`, and
+`firstrun.sh`'s own cleanup step targets `/boot/cmdline.txt` -- both using the legacy
+`/boot/...` path. This image mounts the FAT32 partition at `/boot/firmware` (not `/boot`
+directly), and ships no compat symlink for those two filenames (unlike `overlays`/
+`issue.txt`, which do have one). With no file at the path the kernel command line
+references, systemd fails to exec it (ENOENT) before a single line of the script runs;
+since `systemd.run_success_action=reboot` only fires on success, the board is then
+stranded at the isolated boot target with no multi-user target, no network, no getty --
+logs stream briefly, then the console goes idle and the SD-activity LED stops blinking for
+good. This is unrelated to WiFi/NetworkManager specifically and happens even with every
+field left blank.
+
 ## Debian repository
 
 - Sensorgnome packages get uploaded to a debian repository at https://sensorgnome.s3.amazonaws.com/
